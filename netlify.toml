@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/*"
+  to = "/make-color.html"
+  status = 200
