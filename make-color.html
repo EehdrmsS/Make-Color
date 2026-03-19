@@ -351,78 +351,6 @@
     50%      { opacity: 1; }
   }
 
-  /* Spawn debug queue */
-  .canvas-col {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  #spawn-queue-wrap {
-    background: #faf7f0;
-    border: 1.5px solid #e0d8c8;
-    border-radius: 10px;
-    padding: 8px 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-
-  .sq-label {
-    font-size: 0.5rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: #a09070;
-    margin-bottom: 6px;
-  }
-
-  #spawn-queue {
-    display: flex;
-    gap: 6px;
-    align-items: center;
-  }
-
-  .sq-slot {
-    position: relative;
-    width: 46px;
-    height: 46px;
-    flex-shrink: 0;
-  }
-
-  .sq-bubble {
-    width: 46px;
-    height: 46px;
-    border-radius: 50%;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35);
-  }
-
-  .sq-bubble.dead {
-    background: #16121f !important;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  }
-
-  .sq-bubble.empty {
-    background: rgba(180,165,140,0.10) !important;
-    box-shadow: none;
-    border: 1.5px dashed rgba(180,165,140,0.35);
-  }
-
-  .sq-num {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.6rem;
-    font-family: 'DM Mono', monospace;
-    font-weight: 500;
-    color: rgba(255,255,255,0.85);
-    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
-    pointer-events: none;
-  }
-
-  .sq-bubble.empty + .sq-num {
-    color: rgba(160,144,112,0.6);
-    text-shadow: none;
-  }
 </style>
 </head>
 <body>
@@ -438,14 +366,8 @@
 </div>
 
 <div class="wrapper">
-  <div class="canvas-col">
-    <div id="canvas-wrap">
-      <canvas id="c"></canvas>
-    </div>
-    <div id="spawn-queue-wrap">
-      <div class="sq-label">Spawn Queue</div>
-      <div id="spawn-queue"></div>
-    </div>
+  <div id="canvas-wrap">
+    <canvas id="c"></canvas>
   </div>
 
   <div class="sidebar">
@@ -476,7 +398,6 @@
     </div>
 
     <button onclick="initGame()">↺ New Game</button>
-    <button onclick="debugAddScore(500)" style="background:#5a3a10;font-size:0.58rem;">⚡ +500 (debug)</button>
   </div>
 </div>
 
@@ -803,13 +724,6 @@ function onMissionComplete(color) {
   }, 1200);
 }
 
-function debugAddScore(pts) {
-  score += pts;
-  document.getElementById('score').textContent = score;
-  checkLevelUp();
-  addLog(`[debug] +${pts} score`, 'dead');
-}
-
 function checkLevelUp() {
   const newLevel = LEVEL_THRESHOLDS.filter(t => score >= t).length;
   if (newLevel > level) {
@@ -862,7 +776,6 @@ const MIX1_COLORS = ['G','O','P']; // 레벨 보정으로 강제 스폰되는 1�
 let level = 1;
 let spawnCounter = 0;        // 누적 스폰 횟수 (검은 버블 계산용)
 let nonBlackSpawnCounter = 0; // 비검은 스폰 횟수 (1차조합색 계산용)
-let spawnHistory = [];       // 최근 10개 스폰 기록 [{color, isDead}]
 
 let removalQueue = [];
 
@@ -980,10 +893,7 @@ function triggerRemovals() {
         cellMixMap[r][c] = 0;
       }
 
-      spawnHistory.push({ color: grid[r][c], isDead: spawnDead, seq: spawnCounter });
-      if (spawnHistory.length > 10) spawnHistory.shift();
     });
-    renderSpawnQueue();
 
     rebuildRegions();
     burstCells = [];
@@ -1537,38 +1447,6 @@ function showScorePop(reg, pts) {
 // [LOG] 사이드바 로그 메시지 추가
 // ═══════════════════════════════════════════════
 // type: 'merge' | 'remove' | 'dead'  → CSS 색상 구분
-function renderSpawnQueue() {
-  const el = document.getElementById('spawn-queue');
-  el.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const slot = document.createElement('div');
-    slot.className = 'sq-slot';
-
-    const bubble = document.createElement('div');
-    bubble.className = 'sq-bubble';
-
-    const num = document.createElement('div');
-    num.className = 'sq-num';
-
-    if (i < spawnHistory.length) {
-      const item = spawnHistory[i];
-      if (item.isDead) {
-        bubble.classList.add('dead');
-      } else {
-        bubble.style.background = toCss(item.color);
-      }
-      // 전역 생성 순번을 버블 안에 표시
-      num.textContent = item.seq;
-    } else {
-      bubble.classList.add('empty');
-      num.textContent = '';
-    }
-
-    slot.appendChild(bubble);
-    slot.appendChild(num);
-    el.appendChild(slot);
-  }
-}
 
 function addLog(msg, type='merge') {
   const log = document.getElementById('log');
@@ -1625,8 +1503,6 @@ function initGame() {
   document.getElementById('level').textContent = '1';
   document.getElementById('level-next').textContent = `next: ${LEVEL_THRESHOLDS[1].toLocaleString()}`;
   document.getElementById('log').innerHTML = '';
-  spawnHistory = [];
-  renderSpawnQueue();
 
   // ── 그리드 초기화 ─────────────────────────────
   // 목표:
