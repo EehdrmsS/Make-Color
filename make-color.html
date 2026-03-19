@@ -1,0 +1,1716 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Color!</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,700;1,300&family=DM+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #f5f0e8;
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: default;
+  }
+
+  /* Paper texture bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    gap: 28px;
+    align-items: flex-start;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 2.4rem;
+    color: #1a1208;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  h1 span {
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  .tagline {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #8a7a60;
+    margin-top: 4px;
+  }
+
+  /* Canvas area */
+  #canvas-wrap {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow:
+      0 2px 0 #d4c9b0,
+      0 4px 0 #c8bca0,
+      0 8px 24px rgba(0,0,0,0.18),
+      inset 0 1px 0 rgba(255,255,255,0.8);
+    background: #faf7f0;
+  }
+
+  canvas {
+    display: block;
+    cursor: crosshair;
+  }
+
+  /* Sidebar */
+  .sidebar {
+    width: 156px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 4px;
+  }
+
+  .card {
+    background: #faf7f0;
+    border: 1.5px solid #e0d8c8;
+    border-radius: 10px;
+    padding: 12px 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .card-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #a09070;
+    margin-bottom: 4px;
+  }
+
+  .card-val {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 2.2rem;
+    color: #1a1208;
+    line-height: 1;
+  }
+
+  /* Color mix table preview */
+  .mix-table {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 4px;
+  }
+
+  .mix-row {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.5rem;
+    color: #8a7a60;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .mix-arrow {
+    font-size: 0.45rem;
+    color: #c0b090;
+  }
+
+  /* Log */
+  #log {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-height: 100px;
+    overflow-y: auto;
+    scrollbar-width: none;
+  }
+
+  .log-line {
+    font-size: 0.55rem;
+    color: #8a7a60;
+    border-left: 2px solid #e0d0b0;
+    padding-left: 6px;
+    line-height: 1.5;
+    animation: slideIn 0.2s ease;
+  }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; }
+  }
+
+  .log-line.remove { border-color: #e06040; color: #c05030; }
+  .log-line.dead   { border-color: #404050; color: #606080; }
+  .log-line.merge  { border-color: #70a080; color: #507060; }
+
+  btn-wrap { display: block; }
+
+  button {
+    width: 100%;
+    background: #1a1208;
+    color: #f5f0e8;
+    border: none;
+    border-radius: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    padding: 10px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  button:hover { background: #2e2412; }
+  button:active { transform: scale(0.97); }
+
+  /* Tooltip */
+  #tooltip {
+    position: fixed;
+    background: #1a1208;
+    color: #f5f0e8;
+    font-size: 0.6rem;
+    padding: 5px 10px;
+    border-radius: 6px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 100;
+    white-space: nowrap;
+  }
+
+  #tooltip.show { opacity: 1; }
+
+  /* Score float */
+  .score-pop {
+    position: fixed;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    pointer-events: none;
+    animation: floatUp 0.9s ease-out forwards;
+    z-index: 200;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
+
+  @keyframes floatUp {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-50px) scale(1.4); }
+  }
+
+  /* Mission bar */
+  #mission-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #faf7f0;
+    border: 1.5px solid #e0d8c8;
+    border-radius: 10px;
+    padding: 10px 16px;
+    margin-bottom: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    min-height: 52px;
+  }
+
+  .mission-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #a09070;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .mission-slots {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .mission-slot {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .mission-blob {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    position: relative;
+    transition: transform 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+
+  .mission-blob::after {
+    content: '';
+    position: absolute;
+    top: 5px; left: 6px;
+    width: 10px; height: 8px;
+    background: rgba(255,255,255,0.38);
+    border-radius: 50%;
+    transform: rotate(-30deg);
+  }
+
+  .mission-blob.completed {
+    opacity: 0.35;
+    transform: scale(0.85);
+  }
+
+  .mission-blob.completed::before {
+    content: '✓';
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    color: rgba(255,255,255,0.9);
+    z-index: 1;
+    font-weight: 700;
+  }
+
+  .mission-name {
+    font-size: 0.5rem;
+    color: #8a7a60;
+    letter-spacing: 0.04em;
+    text-align: center;
+  }
+
+  .mission-recipe {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.42rem;
+    color: #b0a080;
+  }
+
+  .recipe-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* Mission complete flash */
+  .mission-complete-flash {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 2.2rem;
+    color: #fff;
+    pointer-events: none;
+    animation: missionFlash 1.1s ease-out forwards;
+    z-index: 300;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    white-space: nowrap;
+  }
+
+  @keyframes missionFlash {
+    0%   { opacity: 0; transform: translate(-50%,-50%) scale(0.7); }
+    20%  { opacity: 1; transform: translate(-50%,-50%) scale(1.1); }
+    70%  { opacity: 1; transform: translate(-50%,-50%) scale(1.0); }
+    100% { opacity: 0; transform: translate(-50%,-50%) scale(1.2); }
+  }
+
+  /* Glow pulse on matching region */
+  @keyframes missionGlow {
+    0%,100% { opacity: 0.6; }
+    50%      { opacity: 1; }
+  }
+
+  /* Spawn debug queue */
+  .canvas-col {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  #spawn-queue-wrap {
+    background: #faf7f0;
+    border: 1.5px solid #e0d8c8;
+    border-radius: 10px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .sq-label {
+    font-size: 0.5rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #a09070;
+    margin-bottom: 6px;
+  }
+
+  #spawn-queue {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .sq-slot {
+    position: relative;
+    width: 46px;
+    height: 46px;
+    flex-shrink: 0;
+  }
+
+  .sq-bubble {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+
+  .sq-bubble.dead {
+    background: #16121f !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+
+  .sq-bubble.empty {
+    background: rgba(180,165,140,0.10) !important;
+    box-shadow: none;
+    border: 1.5px dashed rgba(180,165,140,0.35);
+  }
+
+  .sq-num {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6rem;
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+
+  .sq-bubble.empty + .sq-num {
+    color: rgba(160,144,112,0.6);
+    text-shadow: none;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Make <span>Color!</span></h1>
+  <div class="tagline">drag to merge · blend the palette</div>
+</div>
+
+<div id="mission-bar">
+  <div class="mission-label">Mission</div>
+  <div class="mission-slots" id="mission-slots"></div>
+</div>
+
+<div class="wrapper">
+  <div class="canvas-col">
+    <div id="canvas-wrap">
+      <canvas id="c"></canvas>
+    </div>
+    <div id="spawn-queue-wrap">
+      <div class="sq-label">Spawn Queue</div>
+      <div id="spawn-queue"></div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-label">Score</div>
+      <div class="card-val" id="score">0</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Level</div>
+      <div class="card-val" id="level">1</div>
+      <div id="level-next" style="font-size:0.5rem;color:#a09070;margin-top:2px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Merges</div>
+      <div class="card-val" id="merges">0</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Mix Guide</div>
+      <div class="mix-table" id="mix-table"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Log</div>
+      <div id="log"></div>
+    </div>
+
+    <button onclick="initGame()">↺ New Game</button>
+    <button onclick="debugAddScore(500)" style="background:#5a3a10;font-size:0.58rem;">⚡ +500 (debug)</button>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<script>
+// ═══════════════════════════════════════════════
+// [COLOR SYSTEM] 색상 정의
+// ═══════════════════════════════════════════════
+// 기본 5색 선정 원칙:
+//   - 서로 섞인 결과(2차색)가 기본 5색과 겹치지 않아야 함
+//   - 따라서 자연 스폰된 버블끼리 섞여도 연쇄 제거 불가
+// 기본색: Red, Yellow, Blue, Green, Purple
+//   R+Y=O(주황), R+B=Pk(분홍), Y+B=Tl(청록), R+G=Br(갈색),
+//   R+P=Dp(진보라), Y+G=Lm(라임), Y+P=O2(황보라→주황계),
+//   B+G=Cy(청녹), B+P=Ib(남색), G+P=Gy(회색)
+// → 모든 2차 결과가 기본 5색(R,Y,B,G,P)과 다른 색이 됨
+//
+// ★ 색을 추가/수정하려면 COLORS, MIX, RECIPE 세 곳을 함께 수정하세요.
+
+// ── 1차색(스폰 가능) ──────────────────────────
+// ★ rgb 값을 바꾸면 게임 내 버블 색이 바뀝니다.
+const COLORS = {
+  R:  { name:'Red',      rgb:[218,  52,  52] },
+  Y:  { name:'Yellow',   rgb:[238, 196,  28] },
+  B:  { name:'Blue',     rgb:[ 48,  88, 205] },
+  G:  { name:'Green',    rgb:[ 55, 155,  65] },
+  P:  { name:'Purple',   rgb:[140,  55, 180] },
+  // ── 2차색(merge 결과만, 직접 스폰 불가) ─────
+  O:  { name:'Orange',   rgb:[228, 122,  30] }, // R+Y
+  Pk: { name:'Pink',     rgb:[210,  80, 130] }, // R+B
+  Tl: { name:'Teal',     rgb:[ 45, 168, 148] }, // Y+B
+  Br: { name:'Brown',    rgb:[148,  82,  28] }, // R+G
+  Lm: { name:'Lime',     rgb:[140, 190,  40] }, // Y+G
+  Cy: { name:'Cyan',     rgb:[ 40, 155, 190] }, // B+G
+  Dp: { name:'Indigo',   rgb:[ 75,  40, 170] }, // B+P
+  Mg: { name:'Magenta',  rgb:[195,  45, 160] }, // R+P
+  Yw: { name:'Gold',     rgb:[210, 165,  30] }, // Y+P
+  Gy: { name:'Gray',     rgb:[128, 128, 128] }, // G+P (3색 혼합도 여기로)
+  // ── 탁색(3차: 2차색끼리 섞이면 탁해짐) ──────
+  Dk: { name:'Mud',      rgb:[ 90,  70,  55] }, // 탁한 갈색계
+};
+
+// ── 혼합표: 두 색 키를 '+' 로 연결하면 결과 색이 나옴 ──────────
+// 키 순서(알파벳 순 a+b)는 mixColors()에서 양방향으로 탐색하므로
+// 'A+B' 만 등록해도 'B+A' 도 자동 처리됩니다.
+// ★ 새 색을 추가하려면 이 테이블에 항목을 추가하세요.
+const MIX = {
+  // 기본색 조합 → 선명한 2차색
+  'R+Y':'O',  'R+B':'P',  'R+G':'Dk', 'R+P':'Mg',
+  'Y+B':'G',  'Y+G':'Lm', 'Y+P':'Dk',
+  'B+G':'Cy', 'B+P':'Dp',
+  'G+P':'Gy',
+  // 기본색 + 2차색 → 탁색
+  'R+O':'Dk','R+Pk':'Dk','R+Tl':'Dk','R+Br':'Dk','R+Lm':'Dk','R+Cy':'Dk','R+Dp':'Dk','R+Mg':'Dk','R+Yw':'Dk',
+  'Y+O':'Dk','Y+Pk':'Dk','Y+Tl':'Dk','Y+Br':'Dk','Y+Lm':'Dk','Y+Cy':'Dk','Y+Dp':'Dk','Y+Mg':'Dk','Y+Yw':'Dk',
+  'B+O':'Dk','B+Pk':'Dk','B+Tl':'Dk','B+Br':'Dk','B+Lm':'Dk','B+Cy':'Dk','B+Dp':'Dk','B+Mg':'Dk','B+Yw':'Dk',
+  'G+O':'Br','G+Pk':'Dk','G+Tl':'Dk','G+Br':'Dk','G+Lm':'Dk','G+Cy':'Dk','G+Dp':'Dk','G+Mg':'Dk','G+Yw':'Dk',
+  'P+O':'Dk','P+Pk':'Dk','P+Tl':'Dk','P+Br':'Dk','P+Lm':'Dk','P+Cy':'Dk','P+Dp':'Dk','P+Mg':'Dk','P+Yw':'Dk',
+  // 2차색끼리 → 탁색
+  'O+Pk':'Dk','O+Tl':'Dk','O+Br':'Dk','O+Lm':'Dk','O+Cy':'Dk','O+Dp':'Dk','O+Mg':'Dk','O+Yw':'Dk','O+Gy':'Gy',
+  'Pk+Tl':'Dk','Pk+Br':'Dk','Pk+Lm':'Dk','Pk+Cy':'Dk','Pk+Dp':'Dk','Pk+Mg':'Dk','Pk+Yw':'Dk','Pk+Gy':'Gy',
+  'Tl+Br':'Dk','Tl+Lm':'Dk','Tl+Cy':'Dk','Tl+Dp':'Dk','Tl+Mg':'Dk','Tl+Yw':'Dk','Tl+Gy':'Gy',
+  'Br+Lm':'Dk','Br+Cy':'Dk','Br+Dp':'Dk','Br+Mg':'Dk','Br+Yw':'Dk','Br+Gy':'Gy',
+  'Lm+Cy':'Dk','Lm+Dp':'Dk','Lm+Mg':'Dk','Lm+Yw':'Dk','Lm+Gy':'Gy',
+  'Cy+Dp':'Dk','Cy+Mg':'Dk','Cy+Yw':'Dk','Cy+Gy':'Gy',
+  'Dp+Mg':'Dk','Dp+Yw':'Dk','Dp+Gy':'Gy',
+  'Mg+Yw':'Dk','Mg+Gy':'Gy',
+  'Yw+Gy':'Gy',
+  // Dk or Gy + 무엇이든 → Gy (완전 중화)
+  'R+Dk':'Gy','Y+Dk':'Gy','B+Dk':'Gy','G+Dk':'Gy','P+Dk':'Gy',
+  'O+Dk':'Gy','Pk+Dk':'Gy','Tl+Dk':'Gy','Br+Dk':'Gy','Lm+Dk':'Gy',
+  'Cy+Dk':'Gy','Dp+Dk':'Gy','Mg+Dk':'Gy','Yw+Dk':'Gy','Gy+Dk':'Gy','Dk+Dk':'Gy',
+  'R+Gy':'Gy','Y+Gy':'Yw','B+Gy':'Gy','G+Gy':'Gy','P+Gy':'Gy',
+};
+
+// ★ 스폰 가능한 기본 색상 목록 — 버블 터진 후 리스폰 색상 (3원색만)
+// G, P 는 조합으로만 만들 수 있음 (이단 조합 설계)
+const BASE_COLORS = ['R','Y','B'];
+
+// ★ 게임 시작 시 초기 그리드에만 사용하는 색 — 3원색으로 제한해 초반 난이도를 낮춤
+const INIT_COLORS = ['R','Y','B'];
+
+// ★ mixCount 가 이 값 이상이면 해당 region 은 Dead(검게 굳음) 처리됨
+// Dead 버블은 미션 region 터질 때 주변 1칸만 같이 사라짐
+const DEAD_THRESHOLD = 3;
+
+// ═══════════════════════════════════════════════
+// [MISSION SYSTEM] 미션 시스템
+// ═══════════════════════════════════════════════
+// 미션 설계 방향: "어떤 색을 만들어라!" — 조합 힌트 없이 목표 색만 제시
+// 플레이어가 Mix Guide(사이드바)를 보며 스스로 조합을 추론해야 합니다.
+//
+// ★ 미션 후보색: 반드시 merge 로만 만들 수 있는 2차색 목록
+//   (여기서 제거하면 해당 색은 미션으로 출제되지 않음)
+const MISSION_COLORS = ['O','G','P','Br','Lm','Cy','Dp','Mg','Yw'];
+
+// 2차색 → 기본색 조합 역추적 테이블 (내부 로직용, UI 힌트에는 미사용)
+const RECIPE = {
+  O:  ['R','Y'], G:  ['Y','B'], P:  ['R','B'],
+  Br: ['O','G'], Lm: ['Y','G'], Cy: ['B','G'],
+  Dp: ['B','P'], Mg: ['R','P'], Yw: ['Y','Gy'],
+};
+
+let missions = [];    // 현재 활성 미션 슬롯: [{color, completed}, ...]  ← 동시 미션 수 = 2
+let missionScore = 0; // 미션 달성 누적 횟수 (추후 난이도 조절에 활용 가능)
+
+// ── 유틸리티 함수 ────────────────────────────────────────────────
+// 두 색 키를 섞어 결과 색 키를 반환. 테이블에 없으면 Dk(탁색)
+function mixColors(a, b) {
+  if (a === b) return a;
+  return MIX[`${a}+${b}`] || MIX[`${b}+${a}`] || 'Dk';
+}
+
+function randomFrom(arr) { return arr[Math.floor(Math.random()*arr.length)]; }
+function toRgb(key)       { return COLORS[key].rgb; }
+// alpha: 0~1 (투명도)
+function toCss(key, alpha=1) {
+  const [r,g,b] = toRgb(key);
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
+// ═══════════════════════════════════════════════
+// [GAME STATE] 게임 상태 변수
+// ═══════════════════════════════════════════════
+// ★ 그리드 크기: COLS × ROWS 칸, CELL = 한 칸의 픽셀 크기
+const COLS = 10, ROWS = 10;
+const CELL = 52;   // ★ 칸 크기(px) — 바꾸면 캔버스 전체 크기가 변함
+const PAD  = 10;   // 캔버스 여백(px)
+const W = COLS*CELL + PAD*2;  // 캔버스 가로 픽셀
+const H = ROWS*CELL + PAD*2;  // 캔버스 세로 픽셀
+
+let grid = [];       // grid[r][c] = 색 키 문자열 (e.g. 'R', 'O', ...)
+let regions = [];    // 연결된 같은 색 셀들의 묶음 배열 (BFS 로 구성)
+let gridRegion = []; // gridRegion[r][c] = 해당 셀이 속한 region 객체
+// cellMixMap: 셀별 mixCount 를 별도 저장 — region 재빌드 시 정확한 값 유지
+let cellMixMap = []; // cellMixMap[r][c] = 해당 셀의 혼합 횟수
+
+let score = 0, mergeCount = 0;
+let dragStart = null;
+let hoverCell = null;
+let isDragging = false;
+let isAnimating = false;
+
+let burstCells  = [];
+let particles   = [];
+let ripples     = [];
+let appearCells = [];
+
+let rafId = null;
+let lastTs = 0;
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+canvas.width = W;
+canvas.height = H;
+
+// ═══════════════════════════════════════════════
+// [REGION MANAGEMENT] 연결 영역 관리
+// ═══════════════════════════════════════════════
+// region: 같은 색으로 인접 연결된 셀 묶음
+//   { id, cells: [[r,c],...], color, mixCount, isDead }
+let _rid = 0; // region 고유 ID 카운터
+function makeRegion(cells, color, mixCount=0) {
+  return { id: _rid++, cells: cells.map(c=>[...c]), color, mixCount, isDead: mixCount >= DEAD_THRESHOLD };
+}
+
+// grid 전체를 BFS로 순회하여 regions 와 gridRegion 을 다시 구성
+// cellMixMap 을 기준으로 mixCount 를 복원하므로 merge 후에도 정확한 값 유지
+function rebuildRegions() {
+  const visited = Array.from({length:ROWS},()=>Array(COLS).fill(false));
+  regions = [];
+  gridRegion = Array.from({length:ROWS},()=>Array(COLS).fill(null));
+
+  for (let r=0;r<ROWS;r++) for (let c=0;c<COLS;c++) {
+    if (visited[r][c]) continue;
+    const color = grid[r][c];
+    const startDead = cellMixMap[r][c] >= DEAD_THRESHOLD; // 시작 셀의 dead 상태
+    const cells = [];
+    const queue = [[r,c]];
+    visited[r][c] = true;
+    while (queue.length) {
+      const [cr,cc] = queue.shift();
+      cells.push([cr,cc]);
+      for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const nr=cr+dr, nc=cc+dc;
+        if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&!visited[nr][nc]&&grid[nr][nc]===color) {
+          // dead 상태가 다른 셀은 별도 region으로 분리 (오염 방지)
+          const neighborDead = cellMixMap[nr][nc] >= DEAD_THRESHOLD;
+          if (neighborDead !== startDead) continue;
+          visited[nr][nc]=true;
+          queue.push([nr,nc]);
+        }
+      }
+    }
+    // 첫 번째 셀의 mixCount를 region 대표값으로 사용
+    // (merge 시 모든 셀에 동일한 newMix를 씌우므로 일관성 보장)
+    const regionMix = cellMixMap[cells[0][0]][cells[0][1]];
+    const reg = makeRegion(cells, color, regionMix);
+    regions.push(reg);
+    cells.forEach(([rr,cc]) => gridRegion[rr][cc] = reg);
+  }
+}
+
+function getRegionAt(r,c) { return gridRegion[r][c] || null; }
+
+function adjacentRegions(reg) {
+  const seen = new Set(), result = [];
+  for (const [r,c] of reg.cells) {
+    for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const nr=r+dr, nc=c+dc;
+      if (nr<0||nr>=ROWS||nc<0||nc>=COLS) continue;
+      const nb = gridRegion[nr][nc];
+      if (nb && nb!==reg && !seen.has(nb.id)) { seen.add(nb.id); result.push(nb); }
+    }
+  }
+  return result;
+}
+
+function areRegionsAdjacent(a,b) {
+  for (const [r,c] of a.cells)
+    for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const nr=r+dr, nc=c+dc;
+      if (nr>=0&&nr<ROWS&&nc>=0&&nc<COLS&&gridRegion[nr][nc]===b) return true;
+    }
+  return false;
+}
+
+// ═══════════════════════════════════════════════
+// [MERGE LOGIC] 버블 병합 처리
+// ═══════════════════════════════════════════════
+// 두 인접 region 을 드래그로 연결하면 doMerge 가 호출됨
+function doMerge(regA, regB) {
+  if (isAnimating) return;
+  const newColor = mixColors(regA.color, regB.color);
+  // newMix: 두 region 중 더 높은 mixCount + 1 (중첩 혼합 횟수)
+  const newMix = Math.max(regA.mixCount, regB.mixCount) + 1;
+  const newCells = [...regA.cells, ...regB.cells];
+
+  // 그리드 색상 & cellMixMap 동시 업데이트
+  newCells.forEach(([r,c]) => {
+    grid[r][c] = newColor;
+    cellMixMap[r][c] = newMix;
+  });
+
+  mergeCount++;
+  document.getElementById('merges').textContent = mergeCount;
+  addLog(`${COLORS[regA.color].name} + ${COLORS[regB.color].name} → ${COLORS[newColor].name}  mix:${newMix}`, 'merge');
+
+  rebuildRegions();
+  triggerRemovals();
+}
+
+// ═══════════════════════════════════════════════
+// [MISSION MANAGEMENT] 미션 생성 & 달성 처리
+// ═══════════════════════════════════════════════
+// 미션 흐름: pickNewMission → initMissions → renderMissions
+//           merge 후 triggerRemovals 에서 미션 색 region 이 REMOVE_SIZE 이상이면 onMissionComplete
+function pickNewMission(excludeColors = []) {
+  const available = MISSION_COLORS.filter(c => !excludeColors.includes(c));
+  return available[Math.floor(Math.random() * available.length)];
+}
+
+// ★ 동시 미션 수를 바꾸려면 아래 missions 배열 항목 수를 수정하세요.
+function initMissions() {
+  const c1 = pickNewMission();
+  const c2 = pickNewMission([c1]);
+  const c3 = pickNewMission([c1, c2]);
+  missions = [
+    { color: c1, completed: false },
+    { color: c2, completed: false },
+    { color: c3, completed: false },
+  ];
+  missionScore = 0;
+  renderMissions();
+}
+
+function renderMissions() {
+  const el = document.getElementById('mission-slots');
+  el.innerHTML = '';
+
+  // 미션 3개를 구분선 없이 나란히 표시
+  missions.forEach((m) => {
+    const slot = document.createElement('div');
+    slot.className = 'mission-slot';
+
+    // 목표 색 원형 블롭
+    const blob = document.createElement('div');
+    blob.className = 'mission-blob' + (m.completed ? ' completed' : '');
+    blob.style.background = toCss(m.color);
+    blob.title = COLORS[m.color].name;
+
+    // 색 이름 (목표만 표시 — 조합 힌트는 숨김)
+    const name = document.createElement('div');
+    name.className = 'mission-name';
+    name.textContent = COLORS[m.color].name;
+
+    slot.appendChild(blob);
+    slot.appendChild(name);
+    el.appendChild(slot);
+  });
+}
+
+function onMissionComplete(color) {
+  missionScore++;
+
+  // 완료된 미션 슬롯에 completed 표시 (UI에 체크마크)
+  const m = missions.find(m => m.color === color);
+  if (m) m.completed = true;
+  renderMissions();
+
+  // 화면 중앙 플래시 연출
+  showMissionFlash(color);
+  addLog(`Mission! ${COLORS[color].name} ×${REMOVE_SIZE} cleared! 🎨`, 'remove');
+
+  // 1.2초 후 해당 슬롯을 새 미션으로 교체
+  // ★ 딜레이 시간을 바꾸려면 아래 1200 값을 수정하세요 (ms)
+  setTimeout(() => {
+    const newColor = pickNewMission([...missions.map(m2 => m2.color)]);
+    const idx = missions.findIndex(m2 => m2.color === color);
+    if (idx !== -1) missions[idx] = { color: newColor, completed: false };
+    renderMissions();
+    addLog(`New mission: make ${COLORS[newColor].name}!`, 'merge');
+  }, 1200);
+}
+
+function debugAddScore(pts) {
+  score += pts;
+  document.getElementById('score').textContent = score;
+  checkLevelUp();
+  addLog(`[debug] +${pts} score`, 'dead');
+}
+
+function checkLevelUp() {
+  const newLevel = LEVEL_THRESHOLDS.filter(t => score >= t).length;
+  if (newLevel > level) {
+    level = newLevel;
+    document.getElementById('level').textContent = level;
+    const nextThreshold = LEVEL_THRESHOLDS[level] ?? null;
+    const nextEl = document.getElementById('level-next');
+    nextEl.textContent = nextThreshold ? `next: ${nextThreshold.toLocaleString()}` : 'MAX';
+    showLevelUpFlash(level);
+    addLog(`Level Up! Lv.${level} — ${LEVEL_BLACK_RATES[level-1]}/10 dead spawns 💀`, 'dead');
+  }
+}
+
+function showLevelUpFlash(lv) {
+  const el = document.createElement('div');
+  el.className = 'mission-complete-flash';
+  el.textContent = `Level ${lv}! 💀`;
+  el.style.color = '#f0e8ff';
+  el.style.textShadow = '0 0 30px rgba(160,80,220,0.8), 0 4px 20px rgba(0,0,0,0.4)';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1400);
+}
+
+function showMissionFlash(color) {
+  const el = document.createElement('div');
+  el.className = 'mission-complete-flash';
+  el.textContent = `${COLORS[color].name}! 🎨`;
+  el.style.color = toCss(color);
+  el.style.textShadow = `0 0 30px ${toCss(color, 0.7)}, 0 4px 20px rgba(0,0,0,0.3)`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+function isMissionColor(color) {
+  return missions.some(m => m.color === color && !m.completed);
+}
+
+// ═══════════════════════════════════════════════
+// [REMOVAL] 버블 터짐 처리 (애니메이션 큐 기반, 재귀 없음)
+// ═══════════════════════════════════════════════
+// 흐름: triggerRemovals → burstCells 등록 → setTimeout 후 grid 갱신 → 재귀 체크
+const REMOVE_SIZE = 5; // ★ 이 크기(칸 수) 이상이면 터짐 — 숫자를 바꾸면 난이도 조절 가능
+
+// ── 레벨 시스템 ─────────────────────────────────────────────────
+// 레벨별 점수 임계값 및 스폰 규칙
+const LEVEL_THRESHOLDS  = [0, 500, 1500, 3000, 5000, 10000];
+const LEVEL_BLACK_RATES = [0,   2,    3,    3,    4,     5]; // 10스폰당 검은 버블 수
+const LEVEL_MIX1_RATES  = [0,   0,    1,    2,    3,     3]; // 5 비검은 스폰당 1차조합색 수
+const MIX1_COLORS = ['G','O','P']; // 레벨 보정으로 강제 스폰되는 1차 조합색
+let level = 1;
+let spawnCounter = 0;        // 누적 스폰 횟수 (검은 버블 계산용)
+let nonBlackSpawnCounter = 0; // 비검은 스폰 횟수 (1차조합색 계산용)
+let spawnHistory = [];       // 최근 10개 스폰 기록 [{color, isDead}]
+
+let removalQueue = [];
+
+function triggerRemovals() {
+  if (isAnimating) return;
+
+  // REMOVE_SIZE 이상인 region 중 미션 색상인 것만 제거
+  const toRemove = regions.filter(r =>
+    !r.isDead && r.cells.length >= REMOVE_SIZE && isMissionColor(r.color)
+  );
+
+  if (!toRemove.length) {
+    startLoop();
+    return;
+  }
+
+  isAnimating = true;
+
+  const allBurstCells = [];
+  let totalScore = 0;
+  const burstSet = new Set();
+  const key = (r,c) => `${r},${c}`;
+  const completedColors = new Set();
+
+  toRemove.forEach(reg => {
+    const pts = reg.cells.length * (reg.mixCount + 1) * 2; // 미션 달성 보너스 x2
+    totalScore += pts;
+    completedColors.add(reg.color);
+    addLog(`Removed ${COLORS[reg.color].name} (×${reg.cells.length}) +${pts}`, 'remove');
+    showScorePop(reg, pts);
+
+    reg.cells.forEach(([r,c]) => {
+      if (burstSet.has(key(r,c))) return;
+      burstSet.add(key(r,c));
+      allBurstCells.push({r, c, color: reg.color, isDead: false});
+    });
+
+    // Dead 버블: 맞닿은 셀만 제거
+    for (const [r,c] of reg.cells) {
+      for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const nr=r+dr, nc=c+dc;
+        if (nr<0||nr>=ROWS||nc<0||nc>=COLS) continue;
+        const nb = gridRegion[nr][nc];
+        if (!nb || !nb.isDead) continue;
+        if (burstSet.has(key(nr,nc))) continue;
+        burstSet.add(key(nr,nc));
+        allBurstCells.push({r:nr, c:nc, color: nb.color, isDead: true});
+      }
+    }
+  });
+
+  if (allBurstCells.some(b => b.isDead)) {
+    addLog(`Dead cells chipped away!`, 'dead');
+  }
+
+  score += totalScore;
+  document.getElementById('score').textContent = score;
+  checkLevelUp();
+
+  // Sort from center outward for wave effect
+  const cx = allBurstCells.reduce((s,b)=>s+b.c,0) / allBurstCells.length;
+  const cy = allBurstCells.reduce((s,b)=>s+b.r,0) / allBurstCells.length;
+  allBurstCells.sort((a,b) =>
+    Math.hypot(a.r-cy,a.c-cx) - Math.hypot(b.r-cy,b.c-cx)
+  );
+
+  const BURST_DURATION = 360;
+  const STAGGER = 48;
+  const now = performance.now();
+
+  // Register burst animations
+  allBurstCells.forEach((cell, i) => {
+    burstCells.push({
+      r: cell.r, c: cell.c,
+      color: cell.color,
+      isDead: cell.isDead,
+      startT: now + i * STAGGER,
+      duration: BURST_DURATION,
+    });
+  });
+
+  // Spawn particles via setTimeout (fire-and-forget, no state dependency)
+  allBurstCells.forEach((cell, i) => {
+    setTimeout(() => spawnSplatParticles(cell.r, cell.c, cell.color),
+      i * STAGGER + BURST_DURATION * 0.3);
+  });
+
+  // Ripple at centroid midway
+  const rippleDelay = allBurstCells.length * STAGGER * 0.45;
+  setTimeout(() => {
+    const [rx, ry] = cellCenter(Math.round(cy), Math.round(cx));
+    ripples.push({ x:rx, y:ry, color: toRemove[0].color,
+                   startT: performance.now(), maxR: CELL * 3.5 });
+  }, rippleDelay);
+
+  // Commit grid change after animations finish — single setTimeout, no recursion
+  const totalDur = allBurstCells.length * STAGGER + BURST_DURATION + 80;
+  setTimeout(() => {
+    // 제거된 셀: 레벨에 따라 검은 버블 / 1차조합색 / 기본색으로 리스폰
+    const blackPerTen = LEVEL_BLACK_RATES[level - 1];
+    const mix1PerFive = LEVEL_MIX1_RATES[level - 1];
+    allBurstCells.forEach(({r,c}) => {
+      const blackPos = spawnCounter % 10;
+      spawnCounter++;
+      const spawnDead = blackPos < blackPerTen;
+
+      if (spawnDead) {
+        grid[r][c] = randomFrom(BASE_COLORS);
+        cellMixMap[r][c] = DEAD_THRESHOLD;
+      } else {
+        const mixPos = nonBlackSpawnCounter % 5;
+        nonBlackSpawnCounter++;
+        const spawnMix1 = mixPos < mix1PerFive;
+        grid[r][c] = spawnMix1 ? randomFrom(MIX1_COLORS) : randomFrom(BASE_COLORS);
+        cellMixMap[r][c] = 0;
+      }
+
+      spawnHistory.push({ color: grid[r][c], isDead: spawnDead, seq: spawnCounter });
+      if (spawnHistory.length > 10) spawnHistory.shift();
+    });
+    renderSpawnQueue();
+
+    rebuildRegions();
+    burstCells = [];
+
+    // Appear animation for new cells
+    const appearNow = performance.now();
+    allBurstCells.forEach(({r,c}, i) => {
+      appearCells.push({ r, c, startT: appearNow + i * 25 });
+    });
+
+    isAnimating = false;
+
+    // 미션 완료 처리 (애니메이션 끝난 뒤)
+    completedColors.forEach(color => onMissionComplete(color));
+
+    // Check for chain removals
+    requestAnimationFrame(() => triggerRemovals());
+  }, totalDur);
+
+  startLoop();
+}
+
+// ═══════════════════════════════════════════════
+// [PARTICLES] 버블 터질 때 파티클 이펙트
+// ═══════════════════════════════════════════════
+// ★ 파티클 수/크기/속도를 바꾸려면 spawnSplatParticles 내부 상수를 수정하세요.
+function spawnSplatParticles(r, c, colorKey) {
+  const [x, y] = cellCenter(r, c);
+  const [pr, pg, pb] = toRgb(colorKey);
+  const count = 8 + Math.floor(Math.random()*5);
+
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i / count) + (Math.random()-0.5) * 0.8;
+    const speed = 1.8 + Math.random() * 3.2;
+    const size  = 2.5 + Math.random() * 5;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      r: size,
+      pr, pg, pb,
+      life: 1.0,
+      decay: 0.022 + Math.random() * 0.018,
+      gravity: 0.08 + Math.random() * 0.06,
+    });
+  }
+  // A few elongated drips
+  for (let i = 0; i < 3; i++) {
+    const angle = Math.PI/2 + (Math.random()-0.5)*1.2;
+    const speed = 2 + Math.random()*2;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle)*speed*0.4,
+      vy: Math.sin(angle)*speed,
+      r: 3 + Math.random()*3,
+      pr, pg, pb,
+      life: 1.0,
+      decay: 0.014 + Math.random()*0.01,
+      gravity: 0.12,
+      drip: true,
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════
+// [RAF LOOP] requestAnimationFrame 기반 렌더 루프
+// ═══════════════════════════════════════════════
+// stillActive 조건이 모두 false 면 루프가 자동 중지되어 CPU를 절약합니다.
+function startLoop() {
+  if (rafId) return;
+  lastTs = performance.now();
+  rafId = requestAnimationFrame(loop);
+}
+
+function stopLoop() {
+  if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
+}
+
+function loop(ts) {
+  const dt = Math.min(ts - lastTs, 50); // cap dt
+  lastTs = ts;
+
+  updateParticles(dt);
+  updateRipples();
+  renderAll(ts);
+
+  const stillActive =
+    particles.length > 0 ||
+    burstCells.length > 0 ||
+    ripples.length > 0 ||
+    appearCells.length > 0 ||
+    isAnimating ||
+    missions.some(m => !m.completed); // 미션 진행중엔 글로우 위해 계속 렌더
+
+  if (stillActive) {
+    rafId = requestAnimationFrame(loop);
+  } else {
+    rafId = null;
+  }
+}
+
+function updateParticles(dt) {
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.x  += p.vx;
+    p.y  += p.vy;
+    p.vy += p.gravity;
+    p.vx *= 0.97;
+    p.life -= p.decay;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+}
+
+function updateRipples() {
+  const now = performance.now();
+  for (let i = ripples.length-1; i >= 0; i--) {
+    const rip = ripples[i];
+    const t = (now - rip.startT) / 600;
+    if (t >= 1) ripples.splice(i, 1);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// [RENDERING] 캔버스 렌더링
+// ═══════════════════════════════════════════════
+// renderAll → drawRipples → drawRegion(각 region) → drawParticles 순서로 그립니다.
+function cellCenter(r,c) {
+  return [PAD + c*CELL + CELL/2, PAD + r*CELL + CELL/2];
+}
+
+// Get burst scale/alpha for a cell at current time
+function getBurstState(r, c, now) {
+  const b = burstCells.find(b => b.r===r && b.c===c);
+  if (!b) return null;
+  const elapsed = now - b.startT;
+  if (elapsed < 0) return { scale: 1, alpha: 1, phase: 'waiting' };
+  const t = Math.min(elapsed / b.duration, 1);
+
+  // Phase 1 (0→0.3): pulse up  → scale 1.22, bright
+  // Phase 2 (0.3→0.6): hold wobble
+  // Phase 3 (0.6→1): shrink to 0, fade
+  let scale, alpha;
+  if (t < 0.3) {
+    const p = t / 0.3;
+    scale = 1 + 0.22 * Math.sin(p * Math.PI);
+    alpha = 1;
+  } else if (t < 0.6) {
+    const p = (t - 0.3) / 0.3;
+    scale = 1.1 - 0.05 * Math.sin(p * Math.PI * 2);
+    alpha = 1;
+  } else {
+    const p = (t - 0.6) / 0.4;
+    scale = 1.05 * (1 - p);
+    alpha = 1 - p;
+  }
+  return { scale: Math.max(0, scale), alpha: Math.max(0, alpha), t, phase: 'bursting' };
+}
+
+function getAppearState(r, c, now) {
+  const a = appearCells.find(a => a.r===r && a.c===c);
+  if (!a) return null;
+  const t = Math.min((now - a.startT) / 280, 1);
+  if (t >= 1) {
+    appearCells.splice(appearCells.indexOf(a), 1);
+    return null;
+  }
+  // Overshoot spring: scale from 0 → 1.15 → 1
+  const overshoot = t < 0.6
+    ? (t/0.6) * 1.15
+    : 1.15 - 0.15 * ((t-0.6)/0.4);
+  return { scale: overshoot, alpha: Math.min(1, t*3) };
+}
+
+function renderAll(now) {
+  ctx.clearRect(0,0,W,H);
+
+  // Background
+  ctx.fillStyle = '#faf7f0';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid lines
+  ctx.strokeStyle = 'rgba(180,165,140,0.2)';
+  ctx.lineWidth = 1;
+  for (let r=0;r<=ROWS;r++) {
+    ctx.beginPath(); ctx.moveTo(PAD, PAD+r*CELL); ctx.lineTo(PAD+COLS*CELL, PAD+r*CELL); ctx.stroke();
+  }
+  for (let c=0;c<=COLS;c++) {
+    ctx.beginPath(); ctx.moveTo(PAD+c*CELL, PAD); ctx.lineTo(PAD+c*CELL, PAD+ROWS*CELL); ctx.stroke();
+  }
+
+  // Ripples (behind blobs)
+  drawRipples(now);
+
+  // Regions
+  const dragRegion  = dragStart ? getRegionAt(dragStart.r, dragStart.c) : null;
+  const hoverRegion = (isDragging && hoverCell) ? getRegionAt(hoverCell.r, hoverCell.c) : null;
+
+  const sorted = [...regions].sort((a,b) => {
+    if (a===dragRegion) return 1; if (b===dragRegion) return -1; return 0;
+  });
+
+  for (const reg of sorted) {
+    const isSelected = reg === dragRegion;
+    const canMerge   = reg === hoverRegion && hoverRegion !== dragRegion
+                        && dragRegion && areRegionsAdjacent(dragRegion, reg);
+    drawRegion(reg, isSelected, canMerge, now);
+  }
+  if (dragRegion) drawRegion(dragRegion, true, false, now);
+
+  // Particles on top
+  drawParticles();
+}
+
+function drawRipples(now) {
+  for (const rip of ripples) {
+    const t = Math.min((now - rip.startT) / 600, 1);
+    if (t <= 0) continue;
+    const radius = t * rip.maxR;
+    const alpha  = (1-t) * 0.5;
+    const [r0,g0,b0] = toRgb(rip.color);
+    ctx.save();
+    if (radius > 0) {
+      ctx.beginPath();
+      ctx.arc(rip.x, rip.y, radius, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(${r0},${g0},${b0},${alpha})`;
+      ctx.lineWidth = Math.max(0.5, 4 * (1-t));
+      ctx.stroke();
+    }
+    const innerR = radius * 0.6;
+    if (t < 0.7 && innerR > 0) {
+      ctx.beginPath();
+      ctx.arc(rip.x, rip.y, innerR, 0, Math.PI*2);
+      ctx.strokeStyle = `rgba(${r0},${g0},${b0},${alpha*0.5})`;
+      ctx.lineWidth = Math.max(0.5, 2 * (1-t));
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+}
+
+function drawParticles() {
+  ctx.save();
+  for (const p of particles) {
+    const drawR = Math.max(0.5, p.r * p.life);
+    ctx.globalAlpha = p.life * 0.92;
+    const gd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, drawR);
+    gd.addColorStop(0, `rgba(${Math.min(255,p.pr+60)},${Math.min(255,p.pg+50)},${Math.min(255,p.pb+40)},1)`);
+    gd.addColorStop(0.5, `rgba(${p.pr},${p.pg},${p.pb},0.9)`);
+    gd.addColorStop(1, `rgba(${p.pr},${p.pg},${p.pb},0)`);
+    ctx.fillStyle = gd;
+    ctx.beginPath();
+    if (p.drip) {
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      const angle = Math.atan2(p.vy, p.vx);
+      ctx.rotate(angle + Math.PI/2);
+      ctx.scale(1, 1.8);
+      ctx.arc(0, 0, drawR, 0, Math.PI*2);
+      ctx.restore();
+    } else {
+      ctx.arc(p.x, p.y, drawR, 0, Math.PI*2);
+    }
+    ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+function drawRegion(reg, isSelected, isTarget, now) {
+  if (!reg.cells.length) return;
+  const [r0,g0,b0] = toRgb(reg.color);
+  const BLOB_R = CELL * 0.44;
+  const DEAD = reg.isDead;
+  const IS_MISSION = !DEAD && isMissionColor(reg.color);
+  const IS_READY   = IS_MISSION && reg.cells.length >= REMOVE_SIZE; // 터질 수 있는 상태
+
+  // Collect per-cell overrides from burst/appear animations
+  const cellStates = {};
+  for (const [r,c] of reg.cells) {
+    const burst  = getBurstState(r, c, now);
+    const appear = getAppearState(r, c, now);
+    cellStates[`${r},${c}`] = { burst, appear };
+  }
+
+  // Check if entire region is fully invisible (all bursting out)
+  const allGone = reg.cells.every(([r,c]) => {
+    const b = cellStates[`${r},${c}`].burst;
+    return b && b.scale <= 0;
+  });
+  if (allGone) return;
+
+  ctx.save();
+
+  if (isSelected) {
+    ctx.shadowColor = `rgba(${r0},${g0},${b0},0.6)`;
+    ctx.shadowBlur = 18;
+  } else if (isTarget) {
+    ctx.shadowColor = `rgba(255,220,80,0.7)`;
+    ctx.shadowBlur = 16;
+  } else if (IS_READY) {
+    // 터질 수 있는 미션 region: 밝은 흰빛 펄스 글로우
+    const pulse = 0.5 + 0.5 * Math.sin(now * 0.004);
+    ctx.shadowColor = `rgba(255,255,255,${0.5 + 0.4 * pulse})`;
+    ctx.shadowBlur = 18 + 10 * pulse;
+  } else if (IS_MISSION) {
+    // 미션 색이지만 아직 7칸 미만: 살짝 빛나는 테두리
+    const pulse = 0.5 + 0.5 * Math.sin(now * 0.003);
+    ctx.shadowColor = `rgba(${r0},${g0},${b0},${0.35 + 0.25 * pulse})`;
+    ctx.shadowBlur = 10 + 6 * pulse;
+  } else {
+    ctx.shadowColor = `rgba(${r0},${g0},${b0},0.18)`;
+    ctx.shadowBlur = 8;
+  }
+
+  // Connections
+  const connDrawn = new Set();
+  for (const [r,c] of reg.cells) {
+    const stA = cellStates[`${r},${c}`];
+    if (stA.burst && stA.burst.alpha < 0.01) continue;
+
+    for (const [dr,dc] of [[0,1],[1,0]]) {
+      const nr=r+dr, nc=c+dc;
+      if (nr<ROWS&&nc<COLS&&gridRegion[nr][nc]===reg) {
+        const key = `${Math.min(r,nr)},${Math.min(c,nc)},${Math.max(r,nr)},${Math.max(c,nc)}`;
+        if (connDrawn.has(key)) continue;
+        connDrawn.add(key);
+
+        const stB = cellStates[`${nr},${nc}`];
+        const alphaA = stA.burst ? stA.burst.alpha : (stA.appear ? stA.appear.alpha : 1);
+        const alphaB = stB.burst ? stB.burst.alpha : (stB.appear ? stB.appear.alpha : 1);
+        const connAlpha = Math.min(alphaA, alphaB);
+        if (connAlpha <= 0.01) continue;
+
+        const scaleA = stA.burst ? stA.burst.scale : (stA.appear ? stA.appear.scale : 1);
+        const scaleB = stB.burst ? stB.burst.scale : (stB.appear ? stB.appear.scale : 1);
+        const connScale = (scaleA + scaleB) * 0.5;
+
+        const [x1,y1] = cellCenter(r,c);
+        const [x2,y2] = cellCenter(nr,nc);
+
+        ctx.globalAlpha = connAlpha;
+        ctx.strokeStyle = DEAD ? 'rgba(30,28,40,0.85)' : `rgba(${r0},${g0},${b0},0.92)`;
+        const lw = Math.max(0.5, BLOB_R * 1.85 * connScale);
+        ctx.lineWidth = lw;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1,y1);
+        ctx.lineTo(x2,y2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+  }
+
+  // Blobs per cell
+  for (const [r,c] of reg.cells) {
+    const [x,y] = cellCenter(r,c);
+    const st = cellStates[`${r},${c}`];
+
+    let scale = isSelected ? 1.08 : 1.0;
+    let alpha = 1.0;
+
+    if (st.burst) {
+      if (st.burst.scale <= 0) continue;
+      scale = st.burst.scale * (isSelected ? 1.08 : 1.0);
+      alpha = st.burst.alpha;
+    } else if (st.appear) {
+      scale = st.appear.scale;
+      alpha = st.appear.alpha;
+    }
+
+    const blobR = Math.max(0.5, BLOB_R * scale);
+    if (blobR < 0.5) continue;
+
+    ctx.globalAlpha = alpha;
+
+    // Add extra glow pulse during burst wind-up phase
+    if (st.burst && st.burst.t < 0.4) {
+      const pulse = Math.sin(st.burst.t / 0.4 * Math.PI);
+      ctx.shadowColor = `rgba(${r0},${g0},${b0},${0.8*pulse})`;
+      ctx.shadowBlur = 24 * pulse;
+    }
+
+    if (DEAD) {
+      const gd = ctx.createRadialGradient(x-blobR*0.3,y-blobR*0.3,0,x,y,blobR);
+      gd.addColorStop(0,'rgba(55,50,70,0.95)');
+      gd.addColorStop(0.5,'rgba(28,25,40,0.98)');
+      gd.addColorStop(1,'rgba(15,12,22,1)');
+      ctx.fillStyle = gd;
+    } else {
+      const gd = ctx.createRadialGradient(x-blobR*0.35,y-blobR*0.38,0,x,y,blobR*1.1);
+      gd.addColorStop(0, `rgba(${Math.min(255,r0+60)},${Math.min(255,g0+50)},${Math.min(255,b0+40)},1)`);
+      gd.addColorStop(0.45, `rgba(${r0},${g0},${b0},1)`);
+      gd.addColorStop(0.8,  `rgba(${Math.max(0,r0-30)},${Math.max(0,g0-30)},${Math.max(0,b0-25)},1)`);
+      gd.addColorStop(1,    `rgba(${Math.max(0,r0-55)},${Math.max(0,g0-55)},${Math.max(0,b0-50)},0.9)`);
+      ctx.fillStyle = gd;
+    }
+
+    ctx.beginPath();
+    ctx.arc(x, y, blobR, 0, Math.PI*2);
+    ctx.fill();
+
+    // Gloss
+    if (!DEAD) {
+      const hl = ctx.createRadialGradient(x-blobR*0.25,y-blobR*0.3,0,x-blobR*0.1,y-blobR*0.15,blobR*0.55);
+      hl.addColorStop(0,'rgba(255,255,255,0.45)');
+      hl.addColorStop(0.6,'rgba(255,255,255,0.08)');
+      hl.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.fillStyle = hl;
+      ctx.beginPath();
+      ctx.arc(x, y, blobR, 0, Math.PI*2);
+      ctx.fill();
+    }
+
+    ctx.globalAlpha = 1;
+    ctx.shadowBlur = 0;
+  }
+
+  // Labels
+  const visibleCells = reg.cells.filter(([r,c])=> {
+    const st = cellStates[`${r},${c}`];
+    const a = st.burst ? st.burst.alpha : (st.appear ? st.appear.alpha : 1);
+    return a > 0.5;
+  });
+
+  if (visibleCells.length > 0) {
+    const avgR = visibleCells.reduce((s,[r])=>s+r,0)/visibleCells.length;
+    const avgC = visibleCells.reduce((s,[,c])=>s+c,0)/visibleCells.length;
+    const [lx,ly] = cellCenter(Math.round(avgR), Math.round(avgC));
+
+    if (!DEAD && reg.mixCount > 0) {
+      ctx.font = `bold 11px "DM Mono", monospace`;
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = 'rgba(0,0,0,0.4)'; ctx.shadowBlur = 4;
+      ctx.fillText(`×${reg.mixCount}`, lx, ly);
+    }
+    if (!DEAD && reg.cells.length >= 3) {
+      const offset = reg.mixCount > 0 ? 13 : 0;
+      ctx.font = `500 9px "DM Mono", monospace`;
+      ctx.fillStyle = 'rgba(255,255,255,0.65)';
+      ctx.shadowBlur = 3;
+      ctx.fillText(`${reg.cells.length}`, lx, ly+offset);
+    }
+  }
+
+  // Target ring
+  if (isTarget) {
+    for (const [r,c] of reg.cells) {
+      const [x,y] = cellCenter(r,c);
+      ctx.strokeStyle = 'rgba(255,220,60,0.85)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = 'rgba(255,200,0,0.6)'; ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(x, y, BLOB_R*1.12, 0, Math.PI*2);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+// ═══════════════════════════════════════════════
+// [INPUT] 마우스 이벤트 처리
+// ═══════════════════════════════════════════════
+// 드래그 흐름: mousedown(dragStart 기록) → mousemove(hoverCell 갱신) → mouseup(doMerge 호출)
+function renderFrame() {
+  renderAll(performance.now());
+}
+
+function getCell(e) {
+  const rect = canvas.getBoundingClientRect();
+  const sx = (e.clientX - rect.left) * (W / rect.width);
+  const sy = (e.clientY - rect.top)  * (H / rect.height);
+  const c = Math.floor((sx - PAD) / CELL);
+  const r = Math.floor((sy - PAD) / CELL);
+  if (r<0||r>=ROWS||c<0||c>=COLS) return null;
+  return {r,c};
+}
+
+canvas.addEventListener('mousedown', e => {
+  if (isAnimating) return;
+  const cell = getCell(e);
+  if (!cell) return;
+  isDragging = true;
+  dragStart = { ...cell, region: getRegionAt(cell.r, cell.c) };
+  hoverCell = cell;
+  renderFrame();
+});
+
+canvas.addEventListener('mousemove', e => {
+  const cell = getCell(e);
+  if (cell) { hoverCell = cell; updateTooltip(e, cell); }
+  else       { hoverCell = null; hideTooltip(); }
+  if (isDragging) renderFrame();
+});
+
+canvas.addEventListener('mouseup', e => {
+  if (!isDragging) return;
+  isDragging = false;
+  const cell = getCell(e);
+  if (cell && dragStart) {
+    const regA = dragStart.region;
+    const regB = getRegionAt(cell.r, cell.c);
+    if (regA && regB && regA !== regB && areRegionsAdjacent(regA, regB)) {
+      doMerge(regA, regB);
+    }
+  }
+  dragStart = null;
+  renderFrame();
+});
+
+document.addEventListener('mouseup', () => {
+  if (isDragging) { isDragging = false; dragStart = null; renderFrame(); }
+});
+
+// Tooltip
+function updateTooltip(e, cell) {
+  const reg = getRegionAt(cell.r, cell.c);
+  if (!reg) return;
+  const t = document.getElementById('tooltip');
+  const status = reg.isDead ? '💀 Dead' : `mix×${reg.mixCount}`;
+  t.textContent = `${COLORS[reg.color].name} · size ${reg.cells.length} · ${status}`;
+  t.style.left = (e.clientX+14)+'px';
+  t.style.top  = (e.clientY-10)+'px';
+  t.classList.add('show');
+}
+function hideTooltip() { document.getElementById('tooltip').classList.remove('show'); }
+
+// ═══════════════════════════════════════════════
+// [SCORE POP] 점수 획득 시 화면에 플로팅 숫자 표시
+// ═══════════════════════════════════════════════
+function showScorePop(reg, pts) {
+  if (!reg.cells.length) return;
+  const [r,c] = reg.cells[Math.floor(reg.cells.length/2)];
+  const rect = canvas.getBoundingClientRect();
+  const scale = rect.width / W;
+  const [cx,cy] = cellCenter(r,c);
+  const el = document.createElement('div');
+  el.className = 'score-pop';
+  el.textContent = `+${pts}`;
+  el.style.color = toCss(reg.color);
+  el.style.left = (rect.left + cx*scale - 20) + 'px';
+  el.style.top  = (rect.top  + cy*scale - 10) + 'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+// ═══════════════════════════════════════════════
+// [LOG] 사이드바 로그 메시지 추가
+// ═══════════════════════════════════════════════
+// type: 'merge' | 'remove' | 'dead'  → CSS 색상 구분
+function renderSpawnQueue() {
+  const el = document.getElementById('spawn-queue');
+  el.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'sq-slot';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'sq-bubble';
+
+    const num = document.createElement('div');
+    num.className = 'sq-num';
+
+    if (i < spawnHistory.length) {
+      const item = spawnHistory[i];
+      if (item.isDead) {
+        bubble.classList.add('dead');
+      } else {
+        bubble.style.background = toCss(item.color);
+      }
+      // 전역 생성 순번을 버블 안에 표시
+      num.textContent = item.seq;
+    } else {
+      bubble.classList.add('empty');
+      num.textContent = '';
+    }
+
+    slot.appendChild(bubble);
+    slot.appendChild(num);
+    el.appendChild(slot);
+  }
+}
+
+function addLog(msg, type='merge') {
+  const log = document.getElementById('log');
+  const el = document.createElement('div');
+  el.className = `log-line ${type}`;
+  el.textContent = msg;
+  log.insertBefore(el, log.firstChild);
+  while (log.children.length > 15) log.removeChild(log.lastChild);
+}
+
+// ═══════════════════════════════════════════════
+// [MIX TABLE] 사이드바 혼합 가이드 표 생성
+// ═══════════════════════════════════════════════
+// ★ 표시할 조합 목록을 바꾸려면 아래 shown 배열을 수정하세요.
+//   [재료A, 재료B, 결과] 형식입니다.
+function buildMixTable() {
+  const el = document.getElementById('mix-table');
+  el.innerHTML = '';
+  const shown = [
+    ['R','Y','O'],
+    ['R','B','P'],
+    ['Y','B','G'],
+    ['O','G','Br'],
+    ['B','G','Cy'],
+    ['G','P','Gy'],
+  ];
+  shown.forEach(([a,b,res])=>{
+    const row = document.createElement('div');
+    row.className='mix-row';
+    row.innerHTML=`
+      <div class="dot" style="background:${toCss(a)}"></div>
+      <span class="mix-arrow">+</span>
+      <div class="dot" style="background:${toCss(b)}"></div>
+      <span class="mix-arrow">→</span>
+      <div class="dot" style="background:${toCss(res)}"></div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+// ═══════════════════════════════════════════════
+// [INIT] 게임 초기화 — New Game 버튼 & 최초 로드 시 호출
+// ═══════════════════════════════════════════════
+function initGame() {
+  _rid = 0;
+  score = 0; mergeCount = 0; level = 1; spawnCounter = 0; nonBlackSpawnCounter = 0;
+  dragStart = null; hoverCell = null;
+  isDragging = false; isAnimating = false;
+  burstCells = []; particles = []; ripples = []; appearCells = [];
+  stopLoop();
+
+  document.getElementById('score').textContent = '0';
+  document.getElementById('merges').textContent = '0';
+  document.getElementById('level').textContent = '1';
+  document.getElementById('level-next').textContent = `next: ${LEVEL_THRESHOLDS[1].toLocaleString()}`;
+  document.getElementById('log').innerHTML = '';
+  spawnHistory = [];
+  renderSpawnQueue();
+
+  // ── 그리드 초기화 ─────────────────────────────
+  // 목표:
+  //   1. 인접 셀끼리 같은 색이 되어 자연 발생하는 묶음 최대 2칸
+  //   2. 처음부터 3칸 이상 연결되는 묶음 없음
+  //   3. 3원색(R,Y,B)만 사용
+
+  grid = Array.from({length:ROWS}, ()=> Array(COLS).fill(null));
+  cellMixMap = Array.from({length:ROWS}, ()=> Array(COLS).fill(0));
+
+  // 셀별로 허용 색상을 좁혀서 배치
+  // "이미 2개 연결된 방향이면 그 색 금지" 규칙 적용
+  for (let r=0; r<ROWS; r++) {
+    for (let c=0; c<COLS; c++) {
+      // 인접한 이미 배치된 셀들을 확인
+      const forbidden = new Set();
+
+      for (const [dr,dc] of [[-1,0],[0,-1],[-1,-1],[-1,1]]) {
+        const nr=r+dr, nc=c+dc;
+        if (nr<0||nc<0||nr>=ROWS||nc>=COLS||grid[nr][nc]===null) continue;
+        const neighborColor = grid[nr][nc];
+
+        // 이 이웃이 이미 같은 색으로 연결된 셀을 하나라도 가지고 있으면 그 색 금지
+        // (즉, 이웃의 이웃 중 같은 색 있으면 이 셀에서 쓰면 3연결됨)
+        let neighborHasSameColorNeighbor = false;
+        for (const [dr2,dc2] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+          const nr2=nr+dr2, nc2=nc+dc2;
+          if (nr2===r&&nc2===c) continue; // 현재 셀 제외
+          if (nr2<0||nc2<0||nr2>=ROWS||nc2>=COLS||grid[nr2][nc2]===null) continue;
+          if (grid[nr2][nc2] === neighborColor) {
+            neighborHasSameColorNeighbor = true;
+            break;
+          }
+        }
+        if (neighborHasSameColorNeighbor) {
+          forbidden.add(neighborColor);
+        }
+      }
+
+      // 직접 인접한 상·좌 셀과 동일한 색도 추가로 체크해서
+      // 같은 색 인접 2개 이상이면 forbidden
+      const adjColors = {};
+      for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+        const nr=r+dr, nc=c+dc;
+        if (nr<0||nc<0||nr>=ROWS||nc>=COLS||grid[nr][nc]===null) continue;
+        const col = grid[nr][nc];
+        adjColors[col] = (adjColors[col]||0)+1;
+        // 이미 인접한 같은 색이 2개 이상이면 그 색 절대 금지
+        if (adjColors[col] >= 2) forbidden.add(col);
+      }
+
+      const allowed = INIT_COLORS.filter(c => !forbidden.has(c));
+      // 모든 색이 금지된 경우(매우 드문 코너케이스) 전체 허용
+      grid[r][c] = randomFrom(allowed.length > 0 ? allowed : INIT_COLORS);
+    }
+  }
+
+  rebuildRegions();
+
+  // 안전장치: 혹시라도 3칸 이상 region이 있으면 깨뜨림
+  let safetyPass = 0;
+  while (safetyPass < 5) {
+    const large = regions.filter(reg => reg.cells.length >= 3);
+    if (!large.length) break;
+    large.forEach(reg => {
+      reg.cells.slice(2).forEach(([r,c]) => {
+        const adjCol = grid[r-1]?.[c] || grid[r]?.[c-1] || '';
+        const other = INIT_COLORS.filter(x => x !== reg.color && x !== adjCol);
+        grid[r][c] = randomFrom(other.length ? other : INIT_COLORS);
+        cellMixMap[r][c] = 0;
+      });
+    });
+    rebuildRegions();
+    safetyPass++;
+  }
+
+  initMissions();
+  buildMixTable();
+  renderFrame();
+  startLoop();
+  addLog('New game started!', 'merge');
+}
+
+initGame();
+</script>
+</body>
+</html>
