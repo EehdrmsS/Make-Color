@@ -856,8 +856,8 @@ const REMOVE_SIZE = 5; // ★ 이 크기(칸 수) 이상이면 터짐 — 숫자
 // ── 레벨 시스템 ─────────────────────────────────────────────────
 // 레벨별 점수 임계값 및 스폰 규칙
 const LEVEL_THRESHOLDS  = [0, 500, 1500, 3000, 5000, 10000];
-const LEVEL_BLACK_RATES = [0,   2,    3,    3,    4,     5]; // 10스폰당 검은 버블 수
-const LEVEL_MIX1_RATES  = [0,   0,    1,    2,    3,     3]; // 5 비검은 스폰당 1차조합색 수
+const LEVEL_BLACK_RATES = [0,   1,    2,    2,    3,     3]; // 10스폰당 검은 버블 수
+const LEVEL_MIX1_RATES  = [0,   0,    0,    2,    3,     5]; // 10 비검은 스폰당 1차조합색 수
 const MIX1_COLORS = ['G','O','P']; // 레벨 보정으로 강제 스폰되는 1차 조합색
 let level = 1;
 let spawnCounter = 0;        // 누적 스폰 횟수 (검은 버블 계산용)
@@ -973,7 +973,7 @@ function triggerRemovals() {
         grid[r][c] = randomFrom(BASE_COLORS);
         cellMixMap[r][c] = DEAD_THRESHOLD;
       } else {
-        const mixPos = nonBlackSpawnCounter % 5;
+        const mixPos = nonBlackSpawnCounter % 10;
         nonBlackSpawnCounter++;
         const spawnMix1 = mixPos < mix1PerFive;
         grid[r][c] = spawnMix1 ? randomFrom(MIX1_COLORS) : randomFrom(BASE_COLORS);
