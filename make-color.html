@@ -41,7 +41,9 @@
   }
 
   #main-menu,
-  #game-over {
+  #game-over,
+  #ad-offer,
+  #result-screen {
     position: fixed;
     inset: 0;
     z-index: 450;
@@ -53,7 +55,9 @@
   }
 
   #main-menu.hidden,
-  #game-over.hidden { display: none; }
+  #game-over.hidden,
+  #ad-offer.hidden,
+  #result-screen.hidden { display: none; }
 
   .menu-panel {
     width: min(520px, 100%);
@@ -122,6 +126,38 @@
     font-size: 3rem;
     color: #1a1208;
     margin: 8px 0 16px;
+  }
+
+  .result-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 14px 0 16px;
+  }
+
+  .result-stat {
+    background: #faf7f0;
+    border: 1.5px solid #ded3bf;
+    border-radius: 8px;
+    padding: 10px 8px;
+    text-align: center;
+  }
+
+  .result-stat strong {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-size: 1.45rem;
+    line-height: 1;
+    color: #1a1208;
+  }
+
+  .result-stat span {
+    display: block;
+    margin-top: 4px;
+    font-size: 0.48rem;
+    color: #8a7a60;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
   }
 
   /* Header */
@@ -552,6 +588,17 @@
     margin-top: 2px;
   }
 
+  #timer {
+    font-size: 0.65rem;
+    color: #7a6a50;
+    margin-top: 4px;
+  }
+
+  #timer.timer-low {
+    color: #c05030;
+    font-weight: 700;
+  }
+
   .menu-action { background: #4a4031; font-size: 0.58rem; }
 
   .mobile-mode-action {
@@ -722,7 +769,7 @@
       </button>
       <button class="mode-btn" data-action="start" data-mode="extreme">
         <span class="mode-name">Extreme</span>
-        <span class="mode-desc">Special bubbles, mud clears, no time limit. Stay alive as long as you can.</span>
+        <span class="mode-desc">Special bubbles, 30 seconds, missions add time. Stay alive as long as you can.</span>
       </button>
     </div>
   </div>
@@ -743,6 +790,37 @@
         <span class="mode-desc">Choose a different mode.</span>
       </button>
     </div>
+  </div>
+</div>
+
+<div id="ad-offer" class="hidden">
+  <div class="menu-panel">
+    <div class="menu-title">Last <span>Chance!</span></div>
+    <div class="menu-copy">Watch an ad to continue with 10 seconds and one special bubble.</div>
+    <div class="game-over-score" id="revive-score">0</div>
+    <div class="mode-list">
+      <button class="mode-btn" data-action="watch-revive-ad">
+        <span class="mode-name">Watch Ad</span>
+        <span class="mode-desc">Continue this Extreme run.</span>
+      </button>
+      <button class="mode-btn" data-action="quit-extreme">
+        <span class="mode-name">Quit</span>
+        <span class="mode-desc">End the run and return to the menu.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="result-screen" class="hidden">
+  <div class="menu-panel">
+    <div class="menu-title">Round <span>Clear!</span></div>
+    <div class="menu-copy">Take a breath before the next board beat.</div>
+    <div class="result-stats">
+      <div class="result-stat"><strong id="result-round">0</strong><span>Rounds</span></div>
+      <div class="result-stat"><strong id="result-score">0</strong><span>Score</span></div>
+      <div class="result-stat"><strong id="result-time">0s</strong><span>Time</span></div>
+    </div>
+    <button data-action="continue-round">Continue</button>
   </div>
 </div>
 
@@ -815,6 +893,7 @@
     <div class="card">
       <div class="card-label" id="mode-stat-label">Mode</div>
       <div class="card-val" id="mode-stat">Extreme</div>
+      <div id="timer" class="small-muted">30s</div>
       <div id="mode-stat-sub" class="small-muted"></div>
     </div>
 
@@ -838,6 +917,7 @@
 
 <div id="tooltip"></div>
 
+<script src="/ads/adManager.js"></script>
 <script>
 // ═══════════════════════════════════════════════
 // [COLOR SYSTEM] 색상 정의
@@ -935,6 +1015,14 @@ const MISSION_COLORS     = ['O','G','P','Br','Lm','Cy','Dp','Mg']; // 일반 미
 const SPECIAL_COLORS = ['Bm','Rc','Gc','Ls','Cl','Rb'];    // 스페셜 생성 후보
 const SPECIAL_READY_INTERVAL = 5;
 const CLASSIC_TIME_LIMIT = 120;
+const EXTREME_TIME_LIMIT = 30;
+const EXTREME_MISSION_TIME_BONUS = 10;
+const EXTREME_REVIVE_TIME = 10;
+const GAME_STATES = {
+  PLAYING: 'PLAYING',
+  AD_OFFER: 'AD_OFFER',
+  GAME_OVER: 'GAME_OVER',
+};
 const ADSENSE_CLIENT_ID = '%%ADSENSE_CLIENT_ID%%';
 const MISSION_COLORS_LV12 = ['O','G','P']; // 레벨 1~2 전용 — 1차 조합색만
 
@@ -960,6 +1048,7 @@ let timeLeft = CLASSIC_TIME_LIMIT;
 let timerWaitingForTutorial = false;
 let scoreSession = null;
 let manualMobileMode = null;
+let timerTimeoutId = null;
 
 function setSpecialMission(color) {
   specialMission = { color: color ?? randomFrom(SPECIAL_COLORS), completed:false };
@@ -997,35 +1086,183 @@ function toggleMobileMode() {
   setMobileMode(!active, true);
 }
 
+const GameManager = {
+  state: GAME_STATES.GAME_OVER,
+  extremeRounds: 0,
+  pendingRoundBreak: false,
+  reviveUsed: false,
+
+  reset(mode) {
+    this.state = GAME_STATES.PLAYING;
+    this.extremeRounds = 0;
+    this.pendingRoundBreak = false;
+    this.reviveUsed = false;
+    this.stopTimer();
+    timeLeft = mode === 'classic' ? CLASSIC_TIME_LIMIT : EXTREME_TIME_LIMIT;
+    this.updateTimerUi();
+  },
+
+  isPlaying() {
+    return this.state === GAME_STATES.PLAYING;
+  },
+
+  stopTimer() {
+    if (timerTimeoutId) {
+      clearTimeout(timerTimeoutId);
+      gameTimers.delete(timerTimeoutId);
+      timerTimeoutId = null;
+    }
+  },
+
+  startTimer() {
+    this.stopTimer();
+    if (!gameStarted || gameEnded || !this.isPlaying()) return;
+    timerTimeoutId = scheduleGameTimeout(() => {
+      timerTimeoutId = null;
+      this.tickTimer();
+    }, 1000);
+  },
+
+  tickTimer() {
+    if (!gameStarted || gameEnded || !this.isPlaying()) return;
+    timeLeft = Math.max(0, timeLeft - 1);
+    this.updateTimerUi();
+    updateModeUi();
+    if (timeLeft <= 0) {
+      if (currentMode === 'classic') endClassicGame();
+      else this.showReviveOffer();
+      return;
+    }
+    this.startTimer();
+  },
+
+  updateTimerUi() {
+    const timer = document.getElementById('timer');
+    if (!timer) return;
+    timer.textContent = `${timeLeft}s`;
+    timer.classList.toggle('timer-low', timeLeft <= 5);
+  },
+
+  onMissionClear() {
+    if (currentMode !== 'extreme' || gameEnded) return;
+    timeLeft += EXTREME_MISSION_TIME_BONUS;
+    this.extremeRounds += 1;
+    this.updateTimerUi();
+    updateModeUi();
+    if (window.AdManager?.trackAdFrequency()) {
+      this.pendingRoundBreak = true;
+    }
+  },
+
+  consumeRoundBreakRequest() {
+    if (!this.pendingRoundBreak || currentMode !== 'extreme') return false;
+    this.pendingRoundBreak = false;
+    return true;
+  },
+
+  showRoundResult() {
+    this.state = GAME_STATES.AD_OFFER;
+    this.stopTimer();
+    document.getElementById('result-round').textContent = this.extremeRounds;
+    document.getElementById('result-score').textContent = score.toLocaleString();
+    document.getElementById('result-time').textContent = `${timeLeft}s`;
+    document.getElementById('result-screen').classList.remove('hidden');
+    renderFrame();
+  },
+
+  continueAfterResult() {
+    document.getElementById('result-screen').classList.add('hidden');
+    const resume = () => {
+      this.state = GAME_STATES.PLAYING;
+      this.startTimer();
+      requestAnimationFrame(() => triggerRemovals());
+      renderFrame();
+    };
+    if (window.AdManager?.showInterstitial) window.AdManager.showInterstitial(resume);
+    else resume();
+  },
+
+  showReviveOffer() {
+    this.stopTimer();
+    this.state = this.reviveUsed ? GAME_STATES.GAME_OVER : GAME_STATES.AD_OFFER;
+    gameEnded = this.reviveUsed;
+    isDragging = false;
+    dragStart = null;
+    hoverCell = null;
+    if (this.reviveUsed) {
+      this.finishExtremeGame();
+      return;
+    }
+    document.getElementById('revive-score').textContent = score.toLocaleString();
+    document.getElementById('ad-offer').classList.remove('hidden');
+    renderFrame();
+  },
+
+  watchReviveAd() {
+    if (currentMode !== 'extreme' || this.reviveUsed || this.state !== GAME_STATES.AD_OFFER) return;
+    if (window.AdManager?.showRewarded) window.AdManager.showRewarded(() => this.revive());
+    else this.revive();
+  },
+
+  revive() {
+    document.getElementById('ad-offer').classList.add('hidden');
+    this.reviveUsed = true;
+    gameEnded = false;
+    this.state = GAME_STATES.PLAYING;
+    timeLeft = EXTREME_REVIVE_TIME;
+    spawnReviveSpecialBubble();
+    this.updateTimerUi();
+    updateModeUi();
+    addLog('Revived with 10 seconds and a special bubble.', 'merge');
+    this.startTimer();
+    requestAnimationFrame(() => triggerRemovals());
+    renderFrame();
+  },
+
+  finishExtremeGame() {
+    this.state = GAME_STATES.GAME_OVER;
+    gameEnded = true;
+    clearGameTimers();
+    isAnimating = false;
+    isDragging = false;
+    dragStart = null;
+    hoverCell = null;
+    document.getElementById('ad-offer').classList.add('hidden');
+    document.getElementById('result-screen').classList.add('hidden');
+    document.getElementById('final-score').textContent = score.toLocaleString();
+    document.querySelector('#game-over .menu-copy').textContent = 'Extreme score';
+    document.querySelector('#game-over [data-action="start"]').dataset.mode = 'extreme';
+    document.querySelector('#game-over [data-action="start"] .mode-desc').textContent = 'Start another survival run.';
+    document.getElementById('game-over').classList.remove('hidden');
+    submitScore('extreme');
+    hideTooltip();
+    stopLoop();
+    renderFrame();
+  },
+};
+
 function updateModeUi() {
   const isClassic = currentMode === 'classic';
-  document.getElementById('mode-stat-label').textContent = isClassic ? 'Time' : 'Mode';
-  document.getElementById('mode-stat').textContent = isClassic ? formatTime(timeLeft) : 'Extreme';
-  document.getElementById('mode-stat-sub').textContent = isClassic ? 'Classic' : 'No limit';
+  document.getElementById('mode-stat-label').textContent = isClassic ? 'Time' : 'Timer';
+  document.getElementById('mode-stat').textContent = formatTime(timeLeft);
+  document.getElementById('mode-stat-sub').textContent = isClassic ? 'Classic' : 'Extreme';
+  GameManager.updateTimerUi();
   document.querySelector('.gold-mission-wrap').style.display = isClassic ? 'none' : 'flex';
   const spawnQueueWrap = document.getElementById('spawn-queue-wrap');
   if (spawnQueueWrap) spawnQueueWrap.style.display = isClassic ? 'none' : 'block';
 }
 
 function tickClassicTimer() {
-  if (!gameStarted || gameEnded || currentMode !== 'classic') return;
-  timeLeft = Math.max(0, timeLeft - 1);
-  updateModeUi();
-  if (timeLeft <= 0) {
-    endClassicGame();
-    return;
-  }
-  scheduleGameTimeout(tickClassicTimer, 1000);
+  GameManager.tickTimer();
 }
 
 function startClassicTimer() {
-  if (currentMode !== 'classic') return;
-  timeLeft = CLASSIC_TIME_LIMIT;
-  updateModeUi();
-  scheduleGameTimeout(tickClassicTimer, 1000);
+  GameManager.startTimer();
 }
 
 function endClassicGame() {
+  GameManager.state = GAME_STATES.GAME_OVER;
+  GameManager.stopTimer();
   gameEnded = true;
   clearGameTimers();
   isAnimating = false;
@@ -1033,6 +1270,9 @@ function endClassicGame() {
   dragStart = null;
   hoverCell = null;
   document.getElementById('final-score').textContent = score.toLocaleString();
+  document.querySelector('#game-over .menu-copy').textContent = 'Classic score';
+  document.querySelector('#game-over [data-action="start"]').dataset.mode = 'classic';
+  document.querySelector('#game-over [data-action="start"] .mode-desc').textContent = 'Start another timed run.';
   document.getElementById('game-over').classList.remove('hidden');
   submitScore('classic');
   hideTooltip();
@@ -1047,6 +1287,8 @@ function startGame(mode) {
   }
   document.getElementById('main-menu').classList.add('hidden');
   document.getElementById('game-over').classList.add('hidden');
+  document.getElementById('ad-offer').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
   initGame(mode);
 }
 
@@ -1055,6 +1297,8 @@ function restartGame() {
 }
 
 function showMainMenu() {
+  GameManager.state = GAME_STATES.GAME_OVER;
+  GameManager.stopTimer();
   gameStarted = false;
   gameEnded = true;
   timerWaitingForTutorial = false;
@@ -1062,6 +1306,8 @@ function showMainMenu() {
   stopLoop();
   hideTooltip();
   document.getElementById('tutorial-overlay').classList.add('hidden');
+  document.getElementById('ad-offer').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
   document.getElementById('game-over').classList.add('hidden');
   document.getElementById('main-menu').classList.remove('hidden');
 }
@@ -1076,6 +1322,9 @@ function setupUiActions() {
     else if (action === 'menu') showMainMenu();
     else if (action === 'close-tutorial') closeTutorial();
     else if (action === 'mobile-mode') toggleMobileMode();
+    else if (action === 'continue-round') GameManager.continueAfterResult();
+    else if (action === 'watch-revive-ad') GameManager.watchReviveAd();
+    else if (action === 'quit-extreme') GameManager.finishExtremeGame();
     else logSecurityEvent('unknown_ui_action', { action });
   });
 }
@@ -1228,6 +1477,7 @@ const MAX_PARTICLES = 360;
 function clearGameTimers() {
   gameTimers.forEach(id => clearTimeout(id));
   gameTimers.clear();
+  timerTimeoutId = null;
 }
 
 function scheduleGameTimeout(fn, delay) {
@@ -1586,6 +1836,25 @@ function enqueueSpecialSpawn() {
   renderSpawnQueue();
 }
 
+function spawnReviveSpecialBubble() {
+  if (currentMode === 'classic') return;
+  const color = specialMission?.color ?? randomFrom(SPECIAL_COLORS);
+  const cells = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (!COLORS[grid[r][c]]?.special) cells.push([r, c]);
+    }
+  }
+  const [r, c] = randomFrom(cells.length ? cells : [[0, 0]]);
+  grid[r][c] = color;
+  cellMixMap[r][c] = 1;
+  setSpecialMission();
+  rebuildRegions();
+  renderMissions();
+  renderSpawnQueue();
+  addLog(`Revive special: ${COLORS[color].name} spawned!`, 'merge');
+}
+
 function renderMissions() {
   // 일반 미션 3개
   const el = document.getElementById('mission-slots');
@@ -1636,6 +1905,7 @@ function onMissionComplete(color) {
   renderMissions();
 
   showMissionFlash(color);
+  GameManager.onMissionClear();
   addLog(`Mission! ${COLORS[color].name} ×${REMOVE_SIZE} cleared! 🎨`, 'remove');
 
   scheduleGameTimeout(() => {
@@ -1645,16 +1915,20 @@ function onMissionComplete(color) {
     addLog(`New mission: make ${COLORS[newColor].name}!`, 'merge');
     renderMissions();
     // 새 미션이 이미 필드에 조건을 만족하는 region이 있을 수 있으므로 즉시 체크
-    requestAnimationFrame(() => triggerRemovals());
+    if (GameManager.consumeRoundBreakRequest()) {
+      GameManager.showRoundResult();
+    } else {
+      requestAnimationFrame(() => triggerRemovals());
+    }
   }, 1200);
 }
 
 function closeTutorial() {
   document.getElementById('tutorial-overlay').classList.add('hidden');
   tutorialShown = true;
-  if (timerWaitingForTutorial && currentMode === 'classic' && gameStarted && !gameEnded) {
+  if (timerWaitingForTutorial && gameStarted && !gameEnded) {
     timerWaitingForTutorial = false;
-    startClassicTimer();
+    GameManager.startTimer();
   }
 }
 
@@ -1748,6 +2022,7 @@ function spawnReplacementColor() {
 
 function triggerRemovals() {
   if (!gameStarted || gameEnded) return;
+  if (!GameManager.isPlaying()) return;
   if (isAnimating) return;
 
   // REMOVE_SIZE 이상인 미션 region 또는 Mud region 제거
@@ -2793,6 +3068,7 @@ function getCell(e) {
 
 canvas.addEventListener('mousedown', e => {
   if (!gameStarted || gameEnded) return;
+  if (!GameManager.isPlaying()) return;
   if (isAnimating) return;
   const cell = getCell(e);
   if (!cell) return;
@@ -2844,6 +3120,7 @@ function getTouchPos(touch) {
 canvas.addEventListener('touchstart', e => {
   e.preventDefault();
   if (!gameStarted || gameEnded) return;
+  if (!GameManager.isPlaying()) return;
   if (isAnimating) return;
   const cell = getCell(getTouchPos(e.touches[0]));
   if (!cell) return;
@@ -3021,10 +3298,10 @@ function initGame(mode = currentMode) {
   gameRunId++;
   clearGameTimers();
   stopLoop();
+  GameManager.reset(currentMode);
   gameStarted = true;
   gameEnded = false;
   timerWaitingForTutorial = false;
-  timeLeft = currentMode === 'classic' ? CLASSIC_TIME_LIMIT : 0;
   _rid = 0;
   score = 0; mergeCount = 0; level = 1; spawnCounter = 0; nonBlackSpawnCounter = 0;
   dragStart = null; hoverCell = null;
@@ -3036,6 +3313,8 @@ function initGame(mode = currentMode) {
   document.getElementById('level').textContent = '1';
   document.getElementById('level-next').textContent = `next: ${getLevelThresholds()[1].toLocaleString()}`;
   document.getElementById('log').replaceChildren();
+  document.getElementById('ad-offer').classList.add('hidden');
+  document.getElementById('result-screen').classList.add('hidden');
   spawnHistory = [];
   pendingSpecialSpawns = [];
   renderSpawnQueue();
@@ -3124,7 +3403,8 @@ function initGame(mode = currentMode) {
     addLog(`Classic: ${CLASSIC_TIME_LIMIT} seconds. No special bubbles.`, 'dead');
     timerWaitingForTutorial = true;
   } else {
-    addLog('Extreme: no time limit. Special bubbles enabled.', 'dead');
+    addLog(`Extreme: ${EXTREME_TIME_LIMIT} seconds. Missions add +${EXTREME_MISSION_TIME_BONUS}s.`, 'dead');
+    timerWaitingForTutorial = true;
   }
   requestAnimationFrame(() => triggerRemovals());
   startScoreSession(currentMode);
@@ -3137,6 +3417,7 @@ syncMobileMode();
 window.addEventListener('resize', syncMobileMode);
 window.addEventListener('orientationchange', syncMobileMode);
 loadAdsense();
+window.AdManager?.initAds();
 buildMixTable();
 renderSpawnQueue();
 updateModeUi();

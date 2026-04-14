@@ -26,6 +26,17 @@ function cleanDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
 }
 
+function copyDir(src, dest) {
+  if (!fs.existsSync(src)) return;
+  fs.mkdirSync(dest, { recursive: true });
+  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
+    const from = path.join(src, entry.name);
+    const to = path.join(dest, entry.name);
+    if (entry.isDirectory()) copyDir(from, to);
+    else fs.copyFileSync(from, to);
+  }
+}
+
 cleanDir(dist);
 fs.mkdirSync(assets, { recursive: true });
 
@@ -52,5 +63,6 @@ const html = source
 
 fs.writeFileSync(path.join(dist, 'index.html'), html);
 fs.copyFileSync(path.join(root, 'README.md'), path.join(dist, 'README.md'));
+copyDir(path.join(root, 'ads'), path.join(dist, 'ads'));
 
 console.log('Built production assets in dist/ without source maps.');
