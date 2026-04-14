@@ -168,6 +168,9 @@
   canvas {
     display: block;
     cursor: crosshair;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
   }
 
   /* Sidebar */
@@ -551,6 +554,11 @@
 
   .menu-action { background: #4a4031; font-size: 0.58rem; }
 
+  .mobile-mode-action {
+    background: #305f7a;
+    font-size: 0.58rem;
+  }
+
   .ad-slot {
     min-height: 90px;
     margin-top: 12px;
@@ -560,6 +568,94 @@
   }
 
   /* ── Mobile responsive layout ─────────────────────────── */
+  body.mobile-game {
+    overflow-y: auto;
+    justify-content: flex-start;
+    padding: 10px 8px 22px;
+  }
+
+  body.mobile-game .header {
+    margin-bottom: 8px;
+  }
+
+  body.mobile-game h1 {
+    font-size: 1.65rem;
+  }
+
+  body.mobile-game .tagline {
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
+  }
+
+  body.mobile-game #mission-bar {
+    width: min(100%, 560px);
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    gap: 8px;
+    overflow-x: auto;
+  }
+
+  body.mobile-game .wrapper {
+    width: min(100%, 560px);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  body.mobile-game .canvas-col,
+  body.mobile-game #canvas-wrap {
+    width: 100%;
+  }
+
+  body.mobile-game #canvas-wrap canvas {
+    width: 100% !important;
+    height: auto !important;
+    touch-action: none;
+  }
+
+  body.mobile-game .sidebar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0;
+  }
+
+  body.mobile-game .sidebar .card {
+    min-width: 0;
+    padding: 8px 8px;
+  }
+
+  body.mobile-game .card-label {
+    font-size: 0.46rem;
+    letter-spacing: 0.08em;
+  }
+
+  body.mobile-game .card-val {
+    font-size: 1.35rem;
+  }
+
+  body.mobile-game .sidebar .card:nth-of-type(5),
+  body.mobile-game .sidebar .card:nth-of-type(6) {
+    display: none;
+  }
+
+  body.mobile-game .sidebar button {
+    width: 100%;
+    min-height: 42px;
+    padding: 8px;
+  }
+
+  body.mobile-game .ad-slot {
+    width: min(100%, 560px);
+    min-height: 64px;
+    margin-top: 8px;
+  }
+
+  body.mobile-game #tooltip {
+    display: none;
+  }
+
   @media (max-width: 640px) {
     body { overflow-y: auto; justify-content: flex-start; padding: 12px 8px 24px; }
     .mode-list { grid-template-columns: 1fr; }
@@ -580,6 +676,33 @@
     #mission-bar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
     h1 { font-size: 1.8rem; }
     .tagline { font-size: 0.55rem; }
+  }
+
+  @media (max-height: 520px) and (pointer: coarse) {
+    body.mobile-game .header,
+    body.mobile-game .ad-slot {
+      display: none;
+    }
+
+    body.mobile-game #mission-bar {
+      max-height: 52px;
+    }
+
+    body.mobile-game .wrapper {
+      width: min(100%, 760px);
+      flex-direction: row;
+      align-items: flex-start;
+      justify-content: center;
+    }
+
+    body.mobile-game .canvas-col {
+      width: min(calc(100vh - 72px), calc(100vw - 180px));
+    }
+
+    body.mobile-game .sidebar {
+      width: 164px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
   @media (min-width: 641px) {
     canvas { touch-action: none; }
@@ -707,6 +830,7 @@
 
     <button data-action="restart">↺ New Game</button>
     <button class="menu-action" data-action="menu">Menu</button>
+    <button class="mobile-mode-action" data-action="mobile-mode" id="mobile-mode-toggle">Mobile View</button>
   </div>
 </div>
 
@@ -835,6 +959,7 @@ let gameEnded = false;
 let timeLeft = CLASSIC_TIME_LIMIT;
 let timerWaitingForTutorial = false;
 let scoreSession = null;
+let manualMobileMode = null;
 
 function setSpecialMission(color) {
   specialMission = { color: color ?? randomFrom(SPECIAL_COLORS), completed:false };
@@ -848,6 +973,28 @@ function formatTime(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function shouldUseMobileMode() {
+  return window.matchMedia('(pointer: coarse), (max-width: 720px)').matches;
+}
+
+function setMobileMode(enabled, manual = false) {
+  if (manual) manualMobileMode = enabled;
+  const active = manualMobileMode ?? enabled;
+  document.body.classList.toggle('mobile-game', active);
+  const toggle = document.getElementById('mobile-mode-toggle');
+  if (toggle) toggle.textContent = active ? 'Desktop View' : 'Mobile View';
+  if (typeof renderFrame === 'function') renderFrame();
+}
+
+function syncMobileMode() {
+  setMobileMode(shouldUseMobileMode());
+}
+
+function toggleMobileMode() {
+  const active = document.body.classList.contains('mobile-game');
+  setMobileMode(!active, true);
 }
 
 function updateModeUi() {
@@ -928,6 +1075,7 @@ function setupUiActions() {
     else if (action === 'restart') restartGame();
     else if (action === 'menu') showMainMenu();
     else if (action === 'close-tutorial') closeTutorial();
+    else if (action === 'mobile-mode') toggleMobileMode();
     else logSecurityEvent('unknown_ui_action', { action });
   });
 }
@@ -2680,6 +2828,14 @@ document.addEventListener('mouseup', () => {
   if (isDragging) { isDragging = false; dragStart = null; renderFrame(); }
 });
 
+canvas.addEventListener('mouseleave', () => {
+  if (!isDragging) {
+    hoverCell = null;
+    hideTooltip();
+    renderFrame();
+  }
+});
+
 // ── 터치 이벤트 (모바일) ─────────────────────────────────────────
 function getTouchPos(touch) {
   return { clientX: touch.clientX, clientY: touch.clientY };
@@ -2699,6 +2855,7 @@ canvas.addEventListener('touchstart', e => {
 
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
+  if (!e.touches.length) return;
   const cell = getCell(getTouchPos(e.touches[0]));
   hoverCell = cell ?? null;
   if (isDragging) renderFrame();
@@ -2708,7 +2865,7 @@ canvas.addEventListener('touchend', e => {
   e.preventDefault();
   if (!isDragging) return;
   isDragging = false;
-  const cell = getCell(getTouchPos(e.changedTouches[0]));
+  const cell = e.changedTouches.length ? getCell(getTouchPos(e.changedTouches[0])) : null;
   if (cell && dragStart) {
     const regA = dragStart.region;
     const regB = getRegionAt(cell.r, cell.c);
@@ -2716,6 +2873,14 @@ canvas.addEventListener('touchend', e => {
       doMerge(regA, regB);
     }
   }
+  dragStart = null;
+  hoverCell = null;
+  renderFrame();
+}, { passive: false });
+
+canvas.addEventListener('touchcancel', e => {
+  e.preventDefault();
+  isDragging = false;
   dragStart = null;
   hoverCell = null;
   renderFrame();
@@ -2968,6 +3133,9 @@ function initGame(mode = currentMode) {
 }
 
 setupUiActions();
+syncMobileMode();
+window.addEventListener('resize', syncMobileMode);
+window.addEventListener('orientationchange', syncMobileMode);
 loadAdsense();
 buildMixTable();
 renderSpawnQueue();
