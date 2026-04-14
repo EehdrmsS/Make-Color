@@ -40,6 +40,90 @@
     align-items: flex-start;
   }
 
+  #main-menu,
+  #game-over {
+    position: fixed;
+    inset: 0;
+    z-index: 450;
+    background: rgba(245,240,232,0.96);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  #main-menu.hidden,
+  #game-over.hidden { display: none; }
+
+  .menu-panel {
+    width: min(520px, 100%);
+    text-align: center;
+  }
+
+  .menu-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 3.2rem;
+    color: #1a1208;
+    line-height: 0.95;
+    margin-bottom: 10px;
+  }
+
+  .menu-title span {
+    font-style: italic;
+    font-weight: 300;
+  }
+
+  .menu-copy {
+    font-size: 0.65rem;
+    line-height: 1.7;
+    color: #7a6a50;
+    margin-bottom: 20px;
+  }
+
+  .mode-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .mode-btn {
+    background: #faf7f0;
+    color: #1a1208;
+    border: 1.5px solid #ded3bf;
+    border-radius: 8px;
+    padding: 18px 16px;
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  }
+
+  .mode-btn:hover { background: #fffaf0; }
+
+  .mode-name {
+    display: block;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.55rem;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .mode-desc {
+    display: block;
+    font-size: 0.58rem;
+    line-height: 1.55;
+    color: #6f624e;
+    letter-spacing: 0;
+  }
+
+  .game-over-score {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 3rem;
+    color: #1a1208;
+    margin: 8px 0 16px;
+  }
+
   /* Header */
   .header {
     text-align: center;
@@ -351,6 +435,102 @@
     50%      { opacity: 1; }
   }
 
+  /* Gold special mission */
+  .gold-mission-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    margin-left: 10px;
+    padding-left: 14px;
+    border-left: 1.5px solid #e0d8c8;
+  }
+
+  .gold-label {
+    font-size: 0.45rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #b8860b;
+    white-space: nowrap;
+    animation: goldPulse 1.8s ease-in-out infinite;
+  }
+
+  @keyframes goldPulse {
+    0%,100% { color: #b8860b; text-shadow: none; }
+    50%      { color: #ffd700; text-shadow: 0 0 6px rgba(255,200,0,0.8); }
+  }
+
+  .mission-blob.gold-special {
+    box-shadow: 0 2px 12px rgba(200,150,0,0.5), inset 0 1px 0 rgba(255,255,255,0.5),
+                0 0 0 2px rgba(210,165,30,0.7);
+  }
+
+  /* Tutorial overlay */
+  #tutorial-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,18,8,0.75);
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #tutorial-overlay.hidden { display: none; }
+
+  #tutorial-modal {
+    background: #faf7f0;
+    border: 1.5px solid #e0d8c8;
+    border-radius: 14px;
+    padding: 28px 30px;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+  }
+
+  .tutorial-title {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: #1a1208;
+    margin-bottom: 18px;
+    letter-spacing: -0.02em;
+  }
+
+  .tutorial-section {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+
+  .tutorial-icon {
+    font-size: 1.3rem;
+    flex-shrink: 0;
+    width: 30px;
+    text-align: center;
+    margin-top: 1px;
+  }
+
+  .tutorial-section strong {
+    display: block;
+    font-size: 0.65rem;
+    color: #1a1208;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+  }
+
+  .tutorial-section p {
+    font-size: 0.58rem;
+    color: #7a6a50;
+    line-height: 1.65;
+    margin: 0;
+  }
+
+  #tutorial-modal .tutorial-btn {
+    margin-top: 10px;
+  }
+
   /* Spawn debug queue */
   .canvas-col {
     display: flex;
@@ -399,6 +579,18 @@
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   }
 
+  #mode-stat {
+    font-size: 1.35rem;
+    word-break: break-word;
+  }
+
+  .sq-bubble.special {
+    box-shadow:
+      0 2px 10px rgba(200,150,0,0.45),
+      0 0 0 2px rgba(210,165,30,0.75),
+      inset 0 1px 0 rgba(255,255,255,0.55);
+  }
+
   .sq-bubble.empty {
     background: rgba(180,165,140,0.10) !important;
     box-shadow: none;
@@ -423,18 +615,112 @@
     color: rgba(160,144,112,0.6);
     text-shadow: none;
   }
+
+  /* ── Mobile responsive layout ─────────────────────────── */
+  @media (max-width: 640px) {
+    body { overflow-y: auto; justify-content: flex-start; padding: 12px 8px 24px; }
+    .mode-list { grid-template-columns: 1fr; }
+    .menu-title { font-size: 2.4rem; }
+    .wrapper { flex-direction: column; align-items: center; gap: 12px; }
+    .sidebar {
+      width: 100%;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 0;
+    }
+    .sidebar .card { flex: 1; min-width: 80px; padding: 10px 10px; }
+    .sidebar .card:last-of-type { flex-basis: 100%; } /* Log full width */
+    .sidebar button { width: auto; flex: 1; }
+    #canvas-wrap { max-width: calc(100vw - 16px); width: 100%; }
+    #canvas-wrap canvas { width: 100% !important; height: auto !important; touch-action: none; }
+    #mission-bar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+    #spawn-queue-wrap { max-width: calc(100vw - 16px); }
+    h1 { font-size: 1.8rem; }
+    .tagline { font-size: 0.55rem; }
+  }
+  @media (min-width: 641px) {
+    canvas { touch-action: none; }
+  }
 </style>
 </head>
 <body>
+
+<div id="main-menu">
+  <div class="menu-panel">
+    <div class="menu-title">Make <span>Color!</span></div>
+    <div class="menu-copy">Choose a table and start blending.</div>
+    <div class="mode-list">
+      <button class="mode-btn" onclick="startGame('classic')">
+        <span class="mode-name">Classic</span>
+        <span class="mode-desc">No special bubbles. Score as much as you can before time runs out.</span>
+      </button>
+      <button class="mode-btn" onclick="startGame('extreme')">
+        <span class="mode-name">Extreme</span>
+        <span class="mode-desc">Special bubbles, mud clears, no time limit. Stay alive as long as you can.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="game-over" class="hidden">
+  <div class="menu-panel">
+    <div class="menu-title">Time <span>Up!</span></div>
+    <div class="menu-copy">Classic score</div>
+    <div class="game-over-score" id="final-score">0</div>
+    <div class="mode-list">
+      <button class="mode-btn" onclick="startGame('classic')">
+        <span class="mode-name">Retry</span>
+        <span class="mode-desc">Start another timed run.</span>
+      </button>
+      <button class="mode-btn" onclick="showMainMenu()">
+        <span class="mode-name">Menu</span>
+        <span class="mode-desc">Choose a different mode.</span>
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="header">
   <h1>Make <span>Color!</span></h1>
   <div class="tagline">drag to merge · blend the palette</div>
 </div>
 
+<div id="tutorial-overlay" class="hidden">
+  <div id="tutorial-modal">
+    <div class="tutorial-title">How to Play</div>
+    <div class="tutorial-section">
+      <div class="tutorial-icon">🎨</div>
+      <div>
+        <strong>Drag to Merge</strong>
+        <p>Drag a bubble group onto an adjacent group to mix them. Colors blend like paint — Red + Yellow = Orange, Yellow + Blue = Green.</p>
+      </div>
+    </div>
+    <div class="tutorial-section">
+      <div class="tutorial-icon">💥</div>
+      <div>
+        <strong>Complete Missions</strong>
+        <p>Mix colors to match the mission target. When 5+ connected mission-color bubbles form, they burst and score points!</p>
+      </div>
+    </div>
+    <div class="tutorial-section">
+      <div class="tutorial-icon">💀</div>
+      <div>
+        <strong>Dead Bubbles</strong>
+        <p>Over-mixed bubbles turn black and block the field. They only disappear when adjacent mission bubbles burst nearby.</p>
+      </div>
+    </div>
+    <button class="tutorial-btn" onclick="closeTutorial()">Let's Play!</button>
+  </div>
+</div>
+
 <div id="mission-bar">
   <div class="mission-label">Mission</div>
   <div class="mission-slots" id="mission-slots"></div>
+  <div class="gold-mission-wrap">
+    <div class="gold-label">★ Next Special</div>
+    <div id="gold-mission-slot"></div>
+  </div>
 </div>
 
 <div class="wrapper">
@@ -466,6 +752,12 @@
     </div>
 
     <div class="card">
+      <div class="card-label" id="mode-stat-label">Mode</div>
+      <div class="card-val" id="mode-stat">Extreme</div>
+      <div id="mode-stat-sub" style="font-size:0.5rem;color:#a09070;margin-top:2px;"></div>
+    </div>
+
+    <div class="card">
       <div class="card-label">Mix Guide</div>
       <div class="mix-table" id="mix-table"></div>
     </div>
@@ -475,7 +767,8 @@
       <div id="log"></div>
     </div>
 
-    <button onclick="initGame()">↺ New Game</button>
+    <button onclick="restartGame()">↺ New Game</button>
+    <button onclick="showMainMenu()" style="background:#4a4031;font-size:0.58rem;">Menu</button>
     <button onclick="debugAddScore(500)" style="background:#5a3a10;font-size:0.58rem;">⚡ +500 (debug)</button>
   </div>
 </div>
@@ -507,17 +800,23 @@ const COLORS = {
   P:  { name:'Purple',   rgb:[140,  55, 180] },
   // ── 2차색(merge 결과만, 직접 스폰 불가) ─────
   O:  { name:'Orange',   rgb:[228, 122,  30] }, // R+Y
-  Pk: { name:'Pink',     rgb:[210,  80, 130] }, // R+B
-  Tl: { name:'Teal',     rgb:[ 45, 168, 148] }, // Y+B
-  Br: { name:'Brown',    rgb:[148,  82,  28] }, // R+G
+  Pk: { name:'Pink',     rgb:[210,  80, 130] }, // R+B (레거시)
+  Tl: { name:'Teal',     rgb:[ 45, 168, 148] }, // Y+B (레거시)
+  Br: { name:'Brown',    rgb:[148,  82,  28] }, // O+G
   Lm: { name:'Lime',     rgb:[140, 190,  40] }, // Y+G
   Cy: { name:'Cyan',     rgb:[ 40, 155, 190] }, // B+G
   Dp: { name:'Indigo',   rgb:[ 75,  40, 170] }, // B+P
   Mg: { name:'Magenta',  rgb:[195,  45, 160] }, // R+P
-  Yw: { name:'Gold',     rgb:[210, 165,  30] }, // Y+P
-  Gy: { name:'Gray',     rgb:[128, 128, 128] }, // G+P (3색 혼합도 여기로)
+  Gy: { name:'Gray',     rgb:[128, 128, 128] }, // 레거시 — MIX에서 더 이상 생성 안 됨
   // ── 탁색(3차: 2차색끼리 섞이면 탁해짐) ──────
   Dk: { name:'Mud',      rgb:[ 90,  70,  55] }, // 탁한 갈색계
+  // ── 스페셜 버블 (미션 5회마다 생성 큐에 예약됨) ─
+  Bm: { name:'Bomb',     rgb:[210,  40,   0], special:true },
+  Rc: { name:'Recycle',  rgb:[  0, 200, 120], special:true },
+  Gc: { name:'Lucky',    rgb:[255,  20, 140], special:true },
+  Ls: { name:'Laser',    rgb:[  0, 230, 255], special:true },
+  Cl: { name:'Clean',    rgb:[130, 210, 255], special:true },
+  Rb: { name:'Rainbow',  rgb:[200,  80, 255], special:true },
 };
 
 // ── 혼합표: 두 색 키를 '+' 로 연결하면 결과 색이 나옴 ──────────
@@ -526,31 +825,28 @@ const COLORS = {
 // ★ 새 색을 추가하려면 이 테이블에 항목을 추가하세요.
 const MIX = {
   // 기본색 조합 → 선명한 2차색
-  'R+Y':'O',  'R+B':'P',  'R+G':'Dk', 'R+P':'Mg',
-  'Y+B':'G',  'Y+G':'Lm', 'Y+P':'Dk',
+  'R+Y':'O',  'R+B':'P',  'R+G':'Br', 'R+P':'Mg',
+  'Y+B':'G',  'Y+G':'Lm',
   'B+G':'Cy', 'B+P':'Dp',
-  'G+P':'Gy',
+  'G+P':'Dk', // Gray 삭제 → Mud로 처리
   // 기본색 + 2차색 → 탁색
-  'R+O':'Dk','R+Pk':'Dk','R+Tl':'Dk','R+Br':'Dk','R+Lm':'Dk','R+Cy':'Dk','R+Dp':'Dk','R+Mg':'Dk','R+Yw':'Dk',
-  'Y+O':'Dk','Y+Pk':'Dk','Y+Tl':'Dk','Y+Br':'Dk','Y+Lm':'Dk','Y+Cy':'Dk','Y+Dp':'Dk','Y+Mg':'Dk','Y+Yw':'Dk',
-  'B+O':'Dk','B+Pk':'Dk','B+Tl':'Dk','B+Br':'Dk','B+Lm':'Dk','B+Cy':'Dk','B+Dp':'Dk','B+Mg':'Dk','B+Yw':'Dk',
-  'G+O':'Br','G+Pk':'Dk','G+Tl':'Dk','G+Br':'Dk','G+Lm':'Dk','G+Cy':'Dk','G+Dp':'Dk','G+Mg':'Dk','G+Yw':'Dk',
-  'P+O':'Dk','P+Pk':'Dk','P+Tl':'Dk','P+Br':'Dk','P+Lm':'Dk','P+Cy':'Dk','P+Dp':'Dk','P+Mg':'Dk','P+Yw':'Dk',
+  'R+O':'Dk','R+Br':'Dk','R+Lm':'Dk','R+Cy':'Dk','R+Dp':'Dk','R+Mg':'Dk','R+Yw':'Dk',
+  'Y+O':'Dk','Y+Br':'Dk','Y+Lm':'Dk','Y+Cy':'Dk','Y+Dp':'Dk','Y+Mg':'Dk','Y+Yw':'Dk',
+  'B+O':'Dk','B+Br':'Dk','B+Lm':'Dk','B+Cy':'Dk','B+Dp':'Dk','B+Mg':'Dk','B+Yw':'Dk',
+  'G+O':'Br', 'G+Br':'Dk','G+Lm':'Dk','G+Cy':'Dk','G+Dp':'Dk','G+Mg':'Dk','G+Yw':'Dk',
+  'P+O':'Dk','P+Br':'Dk','P+Lm':'Dk','P+Cy':'Dk','P+Dp':'Dk','P+Mg':'Dk','P+Yw':'Dk',
   // 2차색끼리 → 탁색
-  'O+Pk':'Dk','O+Tl':'Dk','O+Br':'Dk','O+Lm':'Dk','O+Cy':'Dk','O+Dp':'Dk','O+Mg':'Dk','O+Yw':'Dk','O+Gy':'Gy',
-  'Pk+Tl':'Dk','Pk+Br':'Dk','Pk+Lm':'Dk','Pk+Cy':'Dk','Pk+Dp':'Dk','Pk+Mg':'Dk','Pk+Yw':'Dk','Pk+Gy':'Gy',
-  'Tl+Br':'Dk','Tl+Lm':'Dk','Tl+Cy':'Dk','Tl+Dp':'Dk','Tl+Mg':'Dk','Tl+Yw':'Dk','Tl+Gy':'Gy',
-  'Br+Lm':'Dk','Br+Cy':'Dk','Br+Dp':'Dk','Br+Mg':'Dk','Br+Yw':'Dk','Br+Gy':'Gy',
-  'Lm+Cy':'Dk','Lm+Dp':'Dk','Lm+Mg':'Dk','Lm+Yw':'Dk','Lm+Gy':'Gy',
-  'Cy+Dp':'Dk','Cy+Mg':'Dk','Cy+Yw':'Dk','Cy+Gy':'Gy',
-  'Dp+Mg':'Dk','Dp+Yw':'Dk','Dp+Gy':'Gy',
-  'Mg+Yw':'Dk','Mg+Gy':'Gy',
-  'Yw+Gy':'Gy',
-  // Dk or Gy + 무엇이든 → Gy (완전 중화)
-  'R+Dk':'Gy','Y+Dk':'Gy','B+Dk':'Gy','G+Dk':'Gy','P+Dk':'Gy',
-  'O+Dk':'Gy','Pk+Dk':'Gy','Tl+Dk':'Gy','Br+Dk':'Gy','Lm+Dk':'Gy',
-  'Cy+Dk':'Gy','Dp+Dk':'Gy','Mg+Dk':'Gy','Yw+Dk':'Gy','Gy+Dk':'Gy','Dk+Dk':'Gy',
-  'R+Gy':'Gy','Y+Gy':'Yw','B+Gy':'Gy','G+Gy':'Gy','P+Gy':'Gy',
+  'O+Br':'Dk','O+Lm':'Dk','O+Cy':'Dk','O+Dp':'Dk','O+Mg':'Dk','O+Yw':'Dk',
+  'Br+Lm':'Dk','Br+Cy':'Dk','Br+Dp':'Dk','Br+Mg':'Dk','Br+Yw':'Dk',
+  'Lm+Cy':'Dk','Lm+Dp':'Dk','Lm+Mg':'Dk','Lm+Yw':'Dk',
+  'Cy+Dp':'Dk','Cy+Mg':'Dk','Cy+Yw':'Dk',
+  'Dp+Mg':'Dk','Dp+Yw':'Dk',
+  'Mg+Yw':'Dk',
+  // Mud는 더 이상 스페셜을 만들지 않음. 다른 색과 섞이면 계속 Mud가 됩니다.
+  'R+Dk':'Dk','Y+Dk':'Dk','B+Dk':'Dk','G+Dk':'Dk','P+Dk':'Dk','O+Dk':'Dk',
+  'Br+Dk':'Dk','Lm+Dk':'Dk','Cy+Dk':'Dk','Dp+Dk':'Dk','Mg+Dk':'Dk','Yw+Dk':'Dk','Dk+Dk':'Dk',
+  // 레거시 Gy 조합 (Gy 가 필드에 남아있을 경우 대비)
+  'R+Gy':'Dk','Y+Gy':'Dk','B+Gy':'Dk','G+Gy':'Dk','P+Gy':'Dk','Gy+Dk':'Dk','Gy+Gy':'Dk',
 };
 
 // ★ 스폰 가능한 기본 색상 목록 — 버블 터진 후 리스폰 색상 (3원색만)
@@ -572,17 +868,105 @@ const DEAD_THRESHOLD = 3;
 //
 // ★ 미션 후보색: 반드시 merge 로만 만들 수 있는 2차색 목록
 //   (여기서 제거하면 해당 색은 미션으로 출제되지 않음)
-const MISSION_COLORS = ['O','G','P','Br','Lm','Cy','Dp','Mg','Yw'];
+const MISSION_COLORS     = ['O','G','P','Br','Lm','Cy','Dp','Mg']; // 일반 미션 풀
+const SPECIAL_COLORS = ['Bm','Rc','Gc','Ls','Cl','Rb'];    // 스페셜 생성 후보
+const SPECIAL_READY_INTERVAL = 5;
+const CLASSIC_TIME_LIMIT = 120;
+const MISSION_COLORS_LV12 = ['O','G','P']; // 레벨 1~2 전용 — 1차 조합색만
 
-// 2차색 → 기본색 조합 역추적 테이블 (내부 로직용, UI 힌트에는 미사용)
+// 2차색 → 기본색 조합 역추적 테이블 (내부 로직용)
 const RECIPE = {
   O:  ['R','Y'], G:  ['Y','B'], P:  ['R','B'],
   Br: ['O','G'], Lm: ['Y','G'], Cy: ['B','G'],
-  Dp: ['B','P'], Mg: ['R','P'], Yw: ['Y','Gy'],
+  Dp: ['B','P'], Mg: ['R','P'],
 };
 
-let missions = [];    // 현재 활성 미션 슬롯: [{color, completed}, ...]  ← 동시 미션 수 = 2
-let missionScore = 0; // 미션 달성 누적 횟수 (추후 난이도 조절에 활용 가능)
+// 스페셜 버블 캔버스 표시 레이블
+const SPECIAL_LABELS = { Bm:'BOMB', Rc:'REC', Gc:'LUCK', Ls:'LZR', Cl:'CLN', Rb:'RBW' };
+
+let missions = [];    // 현재 활성 미션 슬롯: [{color, completed}, ...]
+let specialMission = null; // UI에 표시되는 다음 스페셜 버블
+let missionScore = 0;
+let pendingSpecialSpawns = [];
+let tutorialShown = false;
+let currentMode = 'extreme';
+let gameStarted = false;
+let gameEnded = false;
+let timeLeft = CLASSIC_TIME_LIMIT;
+let timerWaitingForTutorial = false;
+
+function setSpecialMission(color) {
+  specialMission = { color: color ?? randomFrom(SPECIAL_COLORS), completed:false };
+}
+
+function formatTime(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function updateModeUi() {
+  const isClassic = currentMode === 'classic';
+  document.getElementById('mode-stat-label').textContent = isClassic ? 'Time' : 'Mode';
+  document.getElementById('mode-stat').textContent = isClassic ? formatTime(timeLeft) : 'Extreme';
+  document.getElementById('mode-stat-sub').textContent = isClassic ? 'Classic' : 'No limit';
+  document.querySelector('.gold-mission-wrap').style.display = isClassic ? 'none' : 'flex';
+  document.getElementById('spawn-queue-wrap').style.display = isClassic ? 'none' : 'block';
+}
+
+function tickClassicTimer() {
+  if (!gameStarted || gameEnded || currentMode !== 'classic') return;
+  timeLeft = Math.max(0, timeLeft - 1);
+  updateModeUi();
+  if (timeLeft <= 0) {
+    endClassicGame();
+    return;
+  }
+  scheduleGameTimeout(tickClassicTimer, 1000);
+}
+
+function startClassicTimer() {
+  if (currentMode !== 'classic') return;
+  timeLeft = CLASSIC_TIME_LIMIT;
+  updateModeUi();
+  scheduleGameTimeout(tickClassicTimer, 1000);
+}
+
+function endClassicGame() {
+  gameEnded = true;
+  clearGameTimers();
+  isAnimating = false;
+  isDragging = false;
+  dragStart = null;
+  hoverCell = null;
+  document.getElementById('final-score').textContent = score.toLocaleString();
+  document.getElementById('game-over').classList.remove('hidden');
+  hideTooltip();
+  stopLoop();
+  renderFrame();
+}
+
+function startGame(mode) {
+  document.getElementById('main-menu').classList.add('hidden');
+  document.getElementById('game-over').classList.add('hidden');
+  initGame(mode);
+}
+
+function restartGame() {
+  startGame(currentMode);
+}
+
+function showMainMenu() {
+  gameStarted = false;
+  gameEnded = true;
+  timerWaitingForTutorial = false;
+  clearGameTimers();
+  stopLoop();
+  hideTooltip();
+  document.getElementById('tutorial-overlay').classList.add('hidden');
+  document.getElementById('game-over').classList.add('hidden');
+  document.getElementById('main-menu').classList.remove('hidden');
+}
 
 // ── 유틸리티 함수 ────────────────────────────────────────────────
 // 두 색 키를 섞어 결과 색 키를 반환. 테이블에 없으면 Dk(탁색)
@@ -621,13 +1005,90 @@ let hoverCell = null;
 let isDragging = false;
 let isAnimating = false;
 
-let burstCells  = [];
-let particles   = [];
-let ripples     = [];
-let appearCells = [];
+let burstCells       = [];
+let particles        = [];
+let ripples          = [];
+let appearCells      = [];
+let specialTriggers  = [];
 
 let rafId = null;
 let lastTs = 0;
+let gameRunId = 0;
+let gameTimers = new Set();
+let bubbleSpriteCache = new Map();
+let frameBurstMap = null;
+let frameAppearMap = null;
+const MAX_PARTICLES = 360;
+
+function clearGameTimers() {
+  gameTimers.forEach(id => clearTimeout(id));
+  gameTimers.clear();
+}
+
+function scheduleGameTimeout(fn, delay) {
+  const runId = gameRunId;
+  const id = setTimeout(() => {
+    gameTimers.delete(id);
+    if (runId !== gameRunId) return;
+    fn();
+  }, delay);
+  gameTimers.add(id);
+  return id;
+}
+
+function getBubbleSprite(colorKey, dead=false, special=false) {
+  const key = `${colorKey}:${dead ? 'dead' : special ? 'special' : 'normal'}`;
+  if (bubbleSpriteCache.has(key)) return bubbleSpriteCache.get(key);
+
+  const size = Math.ceil(CELL * 1.02);
+  const r = CELL * 0.44;
+  const cx = size / 2;
+  const cy = size / 2;
+  const cnv = document.createElement('canvas');
+  cnv.width = size;
+  cnv.height = size;
+  const g = cnv.getContext('2d');
+  const [r0,g0,b0] = toRgb(colorKey);
+
+  let fill;
+  if (dead) {
+    fill = g.createRadialGradient(cx-r*0.3, cy-r*0.3, 0, cx, cy, r);
+    fill.addColorStop(0,'rgba(55,50,70,0.95)');
+    fill.addColorStop(0.5,'rgba(28,25,40,0.98)');
+    fill.addColorStop(1,'rgba(15,12,22,1)');
+  } else if (special) {
+    fill = g.createRadialGradient(cx-r*0.3, cy-r*0.35, 0, cx, cy, r*1.1);
+    fill.addColorStop(0, 'rgba(255,255,255,0.85)');
+    fill.addColorStop(0.3, `rgba(${Math.min(255,r0+80)},${Math.min(255,g0+70)},${Math.min(255,b0+60)},1)`);
+    fill.addColorStop(0.7, `rgba(${r0},${g0},${b0},1)`);
+    fill.addColorStop(1, `rgba(${Math.max(0,r0-40)},${Math.max(0,g0-40)},${Math.max(0,b0-40)},0.95)`);
+  } else {
+    fill = g.createRadialGradient(cx-r*0.35, cy-r*0.38, 0, cx, cy, r*1.1);
+    fill.addColorStop(0, `rgba(${Math.min(255,r0+60)},${Math.min(255,g0+50)},${Math.min(255,b0+40)},1)`);
+    fill.addColorStop(0.45, `rgba(${r0},${g0},${b0},1)`);
+    fill.addColorStop(0.8, `rgba(${Math.max(0,r0-30)},${Math.max(0,g0-30)},${Math.max(0,b0-25)},1)`);
+    fill.addColorStop(1, `rgba(${Math.max(0,r0-55)},${Math.max(0,g0-55)},${Math.max(0,b0-50)},0.9)`);
+  }
+
+  g.fillStyle = fill;
+  g.beginPath();
+  g.arc(cx, cy, r, 0, Math.PI * 2);
+  g.fill();
+
+  if (!dead) {
+    const hl = g.createRadialGradient(cx-r*0.25, cy-r*0.3, 0, cx-r*0.1, cy-r*0.15, r*0.55);
+    hl.addColorStop(0,'rgba(255,255,255,0.45)');
+    hl.addColorStop(0.6,'rgba(255,255,255,0.08)');
+    hl.addColorStop(1,'rgba(255,255,255,0)');
+    g.fillStyle = hl;
+    g.beginPath();
+    g.arc(cx, cy, r, 0, Math.PI * 2);
+    g.fill();
+  }
+
+  bubbleSpriteCache.set(key, cnv);
+  return cnv;
+}
 
 const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
@@ -710,13 +1171,26 @@ function areRegionsAdjacent(a,b) {
 // ═══════════════════════════════════════════════
 // 두 인접 region 을 드래그로 연결하면 doMerge 가 호출됨
 function doMerge(regA, regB) {
+  if (!gameStarted || gameEnded) return;
   if (isAnimating) return;
+
+  // 스페셜 버블 처리 — 일반 merge 로직보다 우선
+  const isSpecialA = COLORS[regA.color]?.special;
+  const isSpecialB = COLORS[regB.color]?.special;
+  if (isSpecialA || isSpecialB) {
+    const specialReg = isSpecialA ? regA : regB;
+    const targetReg  = isSpecialA ? regB : regA;
+    triggerSpecial(specialReg, targetReg);
+    return;
+  }
+
   const newColor = mixColors(regA.color, regB.color);
-  // newMix: 두 region 중 더 높은 mixCount + 1 (중첩 혼합 횟수)
-  const newMix = Math.max(regA.mixCount, regB.mixCount) + 1;
+  // 스페셜 버블 생성 시 mixCount = 1 (dead 판정 방지)
+  const newMix = COLORS[newColor]?.special
+    ? 1
+    : Math.max(regA.mixCount, regB.mixCount) + 1;
   const newCells = [...regA.cells, ...regB.cells];
 
-  // 그리드 색상 & cellMixMap 동시 업데이트
   newCells.forEach(([r,c]) => {
     grid[r][c] = newColor;
     cellMixMap[r][c] = newMix;
@@ -731,16 +1205,158 @@ function doMerge(regA, regB) {
 }
 
 // ═══════════════════════════════════════════════
+// [SPECIAL BUBBLES] 스페셜 버블 효과 처리
+// ═══════════════════════════════════════════════
+function triggerSpecial(specialReg, targetReg) {
+  if (currentMode === 'classic') return;
+  if (isAnimating) return;
+  mergeCount++;
+  document.getElementById('merges').textContent = mergeCount;
+
+  // 스페셜 버블은 미션 UI 상태와 무관하게 언제든 발동합니다.
+  isAnimating = true;
+  switch (specialReg.color) {
+    case 'Bm': applyBomb(specialReg, targetReg);    break;
+    case 'Rc': applyRecycle(specialReg, targetReg); break;
+    case 'Gc': applyGoldCoin(specialReg, targetReg);break;
+    case 'Ls': applyLaser(specialReg, targetReg);   break;
+    case 'Cl': applyClean(specialReg, targetReg);   break;
+    case 'Rb': applyRainbow(specialReg, targetReg); break;
+  }
+}
+
+function resetCells(cells, color=null) {
+  cells.forEach(([r,c]) => {
+    grid[r][c] = color ?? randomFrom(BASE_COLORS);
+    cellMixMap[r][c] = 0;
+  });
+}
+
+function commitSpecialAfterFx(type, commit) {
+  startLoop();
+  scheduleGameTimeout(() => {
+    commit();
+    rebuildRegions();
+    isAnimating = false;
+    triggerRemovals();
+  }, SPECIAL_TRIGGER_DUR[type] ?? 700);
+}
+
+// 💣 BOMB: 대상 region 제거
+function applyBomb(specialReg, targetReg) {
+  spawnSpecialTrigger('Bm', specialReg.cells, { targetCells: targetReg.cells });
+  commitSpecialAfterFx('Bm', () => {
+    const pts = targetReg.cells.length * 3;
+    score += pts;
+    document.getElementById('score').textContent = score;
+    checkLevelUp();
+    showScorePop(targetReg, pts);
+    addLog(`💣 BOMB! ${COLORS[targetReg.color].name} ×${targetReg.cells.length} destroyed! +${pts}`, 'remove');
+    spawnSpecialBurst('Bm', [...specialReg.cells, ...targetReg.cells]);
+    resetCells([...specialReg.cells, ...targetReg.cells]);
+  });
+}
+
+// ♻️ RECYCLE: 필드 전체 mixCount 초기화 (dead 부활)
+function applyRecycle(specialReg, targetReg) {
+  spawnSpecialTrigger('Rc', specialReg.cells);
+  commitSpecialAfterFx('Rc', () => {
+    let revived = 0;
+    for (let r=0; r<ROWS; r++) for (let c=0; c<COLS; c++) {
+      if (cellMixMap[r][c] > 0) { cellMixMap[r][c] = 0; revived++; }
+    }
+    spawnSpecialBurst('Rc', specialReg.cells);
+    resetCells(specialReg.cells);
+    addLog(`♻️ RECYCLE! ${revived} cells reset to mix×0!`, 'merge');
+  });
+}
+
+// 💰 COIN: 대상 크기 비례 보너스 점수
+function applyGoldCoin(specialReg, targetReg) {
+  spawnSpecialTrigger('Gc', specialReg.cells);
+  commitSpecialAfterFx('Gc', () => {
+    const bonus = (targetReg.cells.length * (targetReg.mixCount + 1) + missionScore * 50) * 3;
+    score += bonus;
+    document.getElementById('score').textContent = score;
+    checkLevelUp();
+    showScorePop(specialReg, bonus);
+    addLog(`💰 COIN! +${bonus} bonus score!`, 'remove');
+    spawnSpecialBurst('Gc', [...specialReg.cells, ...targetReg.cells]);
+    resetCells([...specialReg.cells, ...targetReg.cells]);
+  });
+}
+
+// ⚡ LASER: 스페셜 버블 위치 기준 십자(+) 범위 삭제
+function applyLaser(specialReg, targetReg) {
+  const rows = [...new Set(specialReg.cells.map(([r])=>r))];
+  const cols = [...new Set(specialReg.cells.map(([,c])=>c))];
+  spawnSpecialTrigger('Ls', specialReg.cells, { rows, cols });
+  const hitSet = new Set();
+  specialReg.cells.forEach(([lr, lc]) => {
+    for (let c=0; c<COLS; c++) hitSet.add(`${lr},${c}`);
+    for (let r=0; r<ROWS; r++) hitSet.add(`${r},${lc}`);
+  });
+  const hitCells = [...hitSet].map(k => k.split(',').map(Number));
+  commitSpecialAfterFx('Ls', () => {
+    const pts = hitCells.length * 2;
+    score += pts;
+    document.getElementById('score').textContent = score;
+    checkLevelUp();
+    addLog(`⚡ LASER! ${hitCells.length} cells cleared! +${pts}`, 'remove');
+    spawnSpecialBurst('Ls', specialReg.cells);
+    resetCells(hitCells);
+  });
+}
+
+// 🌿 CLEAN: 모든 dead 버블 → 무작위 원색
+function applyClean(specialReg, targetReg) {
+  spawnSpecialTrigger('Cl', specialReg.cells);
+  commitSpecialAfterFx('Cl', () => {
+    let cleaned = 0;
+    for (let r=0; r<ROWS; r++) for (let c=0; c<COLS; c++) {
+      if (cellMixMap[r][c] >= DEAD_THRESHOLD) {
+        grid[r][c] = randomFrom(BASE_COLORS);
+        cellMixMap[r][c] = 0;
+        cleaned++;
+      }
+    }
+    spawnSpecialBurst('Cl', specialReg.cells);
+    resetCells(specialReg.cells);
+    addLog(`🌿 CLEAN! ${cleaned} dead cells revived!`, 'merge');
+  });
+}
+
+// 🌈 RAINBOW: 대상 region → 랜덤 미션 색상으로 변환
+function applyRainbow(specialReg, targetReg) {
+  spawnSpecialTrigger('Rb', specialReg.cells);
+  const options = missions.filter(m => !m.completed).map(m => m.color);
+  const targetColor = options.length ? randomFrom(options) : randomFrom(MISSION_COLORS);
+  commitSpecialAfterFx('Rb', () => {
+    const newMix = Math.max(1, targetReg.mixCount);
+    targetReg.cells.forEach(([r,c]) => {
+      grid[r][c] = targetColor;
+      cellMixMap[r][c] = newMix;
+    });
+    spawnSpecialBurst('Rb', specialReg.cells);
+    resetCells(specialReg.cells);
+    addLog(`🌈 RAINBOW! ${targetReg.cells.length}×${COLORS[targetColor].name} appeared!`, 'merge');
+  });
+}
+
+// ═══════════════════════════════════════════════
 // [MISSION MANAGEMENT] 미션 생성 & 달성 처리
 // ═══════════════════════════════════════════════
 // 미션 흐름: pickNewMission → initMissions → renderMissions
 //           merge 후 triggerRemovals 에서 미션 색 region 이 REMOVE_SIZE 이상이면 onMissionComplete
 function pickNewMission(excludeColors = []) {
-  const available = MISSION_COLORS.filter(c => !excludeColors.includes(c));
-  return available[Math.floor(Math.random() * available.length)];
+  const pool = level <= 2 ? MISSION_COLORS_LV12 : MISSION_COLORS;
+  const available = pool.filter(c => !excludeColors.includes(c));
+  if (available.length) return available[Math.floor(Math.random() * available.length)];
+  // 풀이 비는 극단적 상황 — 전체 풀에서 선택
+  const fallback = MISSION_COLORS.filter(c => !excludeColors.includes(c));
+  return fallback[Math.floor(Math.random() * fallback.length)] ?? MISSION_COLORS[0];
 }
 
-// ★ 동시 미션 수를 바꾸려면 아래 missions 배열 항목 수를 수정하세요.
 function initMissions() {
   const c1 = pickNewMission();
   const c2 = pickNewMission([c1]);
@@ -750,57 +1366,91 @@ function initMissions() {
     { color: c2, completed: false },
     { color: c3, completed: false },
   ];
+  setSpecialMission();
   missionScore = 0;
+  pendingSpecialSpawns = [];
   renderMissions();
 }
 
+function enqueueSpecialSpawn() {
+  if (currentMode === 'classic') return;
+  const color = specialMission?.color ?? randomFrom(SPECIAL_COLORS);
+  pendingSpecialSpawns.push(color);
+  addLog(`Special queued: ${COLORS[color].name} will spawn next!`, 'merge');
+  setSpecialMission();
+  renderSpawnQueue();
+}
+
 function renderMissions() {
+  // 일반 미션 3개
   const el = document.getElementById('mission-slots');
   el.innerHTML = '';
-
-  // 미션 3개를 구분선 없이 나란히 표시
   missions.forEach((m) => {
     const slot = document.createElement('div');
     slot.className = 'mission-slot';
-
-    // 목표 색 원형 블롭
     const blob = document.createElement('div');
     blob.className = 'mission-blob' + (m.completed ? ' completed' : '');
     blob.style.background = toCss(m.color);
     blob.title = COLORS[m.color].name;
-
-    // 색 이름 (목표만 표시 — 조합 힌트는 숨김)
     const name = document.createElement('div');
     name.className = 'mission-name';
     name.textContent = COLORS[m.color].name;
-
     slot.appendChild(blob);
     slot.appendChild(name);
     el.appendChild(slot);
   });
+
+  // 다음 예약 스페셜
+  const goldEl = document.getElementById('gold-mission-slot');
+  goldEl.innerHTML = '';
+  if (currentMode === 'classic') return;
+  const goldSlot = document.createElement('div');
+  goldSlot.className = 'mission-slot';
+  const goldBlob = document.createElement('div');
+  goldBlob.className = 'mission-blob gold-special';
+  goldBlob.style.background = toCss(specialMission?.color);
+  goldBlob.title = (COLORS[specialMission?.color]?.name ?? '') + ` — queued every ${SPECIAL_READY_INTERVAL} missions`;
+  const goldName = document.createElement('div');
+  goldName.className = 'mission-name';
+  const progress = missionScore % SPECIAL_READY_INTERVAL;
+  goldName.textContent = `${COLORS[specialMission?.color]?.name ?? ''} ${progress}/${SPECIAL_READY_INTERVAL}`;
+  goldSlot.appendChild(goldBlob);
+  goldSlot.appendChild(goldName);
+  goldEl.appendChild(goldSlot);
 }
 
 function onMissionComplete(color) {
   missionScore++;
 
-  // 완료된 미션 슬롯에 completed 표시 (UI에 체크마크)
   const m = missions.find(m => m.color === color);
   if (m) m.completed = true;
+
+  if (missionScore % SPECIAL_READY_INTERVAL === 0) {
+    enqueueSpecialSpawn();
+  }
   renderMissions();
 
-  // 화면 중앙 플래시 연출
   showMissionFlash(color);
   addLog(`Mission! ${COLORS[color].name} ×${REMOVE_SIZE} cleared! 🎨`, 'remove');
 
-  // 1.2초 후 해당 슬롯을 새 미션으로 교체
-  // ★ 딜레이 시간을 바꾸려면 아래 1200 값을 수정하세요 (ms)
-  setTimeout(() => {
+  scheduleGameTimeout(() => {
     const newColor = pickNewMission([...missions.map(m2 => m2.color)]);
     const idx = missions.findIndex(m2 => m2.color === color);
     if (idx !== -1) missions[idx] = { color: newColor, completed: false };
-    renderMissions();
     addLog(`New mission: make ${COLORS[newColor].name}!`, 'merge');
+    renderMissions();
+    // 새 미션이 이미 필드에 조건을 만족하는 region이 있을 수 있으므로 즉시 체크
+    requestAnimationFrame(() => triggerRemovals());
   }, 1200);
+}
+
+function closeTutorial() {
+  document.getElementById('tutorial-overlay').classList.add('hidden');
+  tutorialShown = true;
+  if (timerWaitingForTutorial && currentMode === 'classic' && gameStarted && !gameEnded) {
+    timerWaitingForTutorial = false;
+    startClassicTimer();
+  }
 }
 
 function debugAddScore(pts) {
@@ -811,11 +1461,12 @@ function debugAddScore(pts) {
 }
 
 function checkLevelUp() {
-  const newLevel = LEVEL_THRESHOLDS.filter(t => score >= t).length;
+  const thresholds = getLevelThresholds();
+  const newLevel = thresholds.filter(t => score >= t).length;
   if (newLevel > level) {
     level = newLevel;
     document.getElementById('level').textContent = level;
-    const nextThreshold = LEVEL_THRESHOLDS[level] ?? null;
+    const nextThreshold = thresholds[level] ?? null;
     const nextEl = document.getElementById('level-next');
     nextEl.textContent = nextThreshold ? `next: ${nextThreshold.toLocaleString()}` : 'MAX';
     showLevelUpFlash(level);
@@ -830,7 +1481,7 @@ function showLevelUpFlash(lv) {
   el.style.color = '#f0e8ff';
   el.style.textShadow = '0 0 30px rgba(160,80,220,0.8), 0 4px 20px rgba(0,0,0,0.4)';
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1400);
+  scheduleGameTimeout(() => el.remove(), 1400);
 }
 
 function showMissionFlash(color) {
@@ -840,23 +1491,25 @@ function showMissionFlash(color) {
   el.style.color = toCss(color);
   el.style.textShadow = `0 0 30px ${toCss(color, 0.7)}, 0 4px 20px rgba(0,0,0,0.3)`;
   document.body.appendChild(el);
-  setTimeout(() => el.remove(), 1200);
+  scheduleGameTimeout(() => el.remove(), 1200);
 }
 
 function isMissionColor(color) {
+  if (COLORS[color]?.special) return false; // 스페셜 버블은 triggerSpecial로만 처리
   return missions.some(m => m.color === color && !m.completed);
 }
 
 // ═══════════════════════════════════════════════
 // [REMOVAL] 버블 터짐 처리 (애니메이션 큐 기반, 재귀 없음)
 // ═══════════════════════════════════════════════
-// 흐름: triggerRemovals → burstCells 등록 → setTimeout 후 grid 갱신 → 재귀 체크
+// 흐름: triggerRemovals → burstCells 등록 → scheduleGameTimeout 후 grid 갱신 → 재귀 체크
 const REMOVE_SIZE = 5; // ★ 이 크기(칸 수) 이상이면 터짐 — 숫자를 바꾸면 난이도 조절 가능
 
 // ── 레벨 시스템 ─────────────────────────────────────────────────
 // 레벨별 점수 임계값 및 스폰 규칙
-const LEVEL_THRESHOLDS  = [0, 500, 1500, 3000, 5000, 10000];
-const LEVEL_BLACK_RATES = [0,   1,    2,    2,    3,     3]; // 10스폰당 검은 버블 수
+const EXTREME_LEVEL_THRESHOLDS  = [0, 500, 1500, 3000, 5000, 10000];
+const CLASSIC_LEVEL_THRESHOLDS  = [0, 300, 500, 1000, 1500, 2000];
+const LEVEL_BLACK_RATES = [0,   1,    1,    3,    4,     5]; // 10스폰당 검은 버블 수
 const LEVEL_MIX1_RATES  = [0,   0,    0,    2,    3,     5]; // 10 비검은 스폰당 1차조합색 수
 const MIX1_COLORS = ['G','O','P']; // 레벨 보정으로 강제 스폰되는 1차 조합색
 let level = 1;
@@ -866,16 +1519,46 @@ let spawnHistory = [];       // 최근 10개 스폰 기록 [{color, isDead}]
 
 let removalQueue = [];
 
+function getLevelThresholds() {
+  return currentMode === 'classic' ? CLASSIC_LEVEL_THRESHOLDS : EXTREME_LEVEL_THRESHOLDS;
+}
+
+function spawnReplacementColor() {
+  if (currentMode !== 'classic' && pendingSpecialSpawns.length > 0) {
+    return { color: pendingSpecialSpawns.shift(), mixCount: 1, isDead: false, isSpecial: true };
+  }
+
+  const blackPerTen = LEVEL_BLACK_RATES[level - 1];
+  const mix1PerFive = LEVEL_MIX1_RATES[level - 1];
+  const blackPos = spawnCounter % 10;
+  const spawnDead = blackPos < blackPerTen;
+
+  if (spawnDead) {
+    return { color: randomFrom(BASE_COLORS), mixCount: DEAD_THRESHOLD, isDead: true, isSpecial: false };
+  }
+
+  const mixPos = nonBlackSpawnCounter % 10;
+  nonBlackSpawnCounter++;
+  const spawnMix1 = mixPos < mix1PerFive;
+  return {
+    color: spawnMix1 ? randomFrom(MIX1_COLORS) : randomFrom(BASE_COLORS),
+    mixCount: 0,
+    isDead: false,
+    isSpecial: false,
+  };
+}
+
 function triggerRemovals() {
+  if (!gameStarted || gameEnded) return;
   if (isAnimating) return;
 
-  // REMOVE_SIZE 이상인 region 중 미션 색상인 것만 제거
+  // REMOVE_SIZE 이상인 미션 region 또는 Mud region 제거
   const toRemove = regions.filter(r =>
-    !r.isDead && r.cells.length >= REMOVE_SIZE && isMissionColor(r.color)
+    !r.isDead && r.cells.length >= REMOVE_SIZE && (isMissionColor(r.color) || r.color === 'Dk')
   );
 
   if (!toRemove.length) {
-    startLoop();
+    renderFrame();
     return;
   }
 
@@ -888,10 +1571,12 @@ function triggerRemovals() {
   const completedColors = new Set();
 
   toRemove.forEach(reg => {
-    const pts = reg.cells.length * (reg.mixCount + 1) * 2; // 미션 달성 보너스 x2
+    const isMud = reg.color === 'Dk';
+    const multiplier = isMud ? 1 : 2;
+    const pts = reg.cells.length * (reg.mixCount + 1) * multiplier;
     totalScore += pts;
-    completedColors.add(reg.color);
-    addLog(`Removed ${COLORS[reg.color].name} (×${reg.cells.length}) +${pts}`, 'remove');
+    if (!isMud) completedColors.add(reg.color);
+    addLog(`${isMud ? 'Cleared' : 'Removed'} ${COLORS[reg.color].name} (×${reg.cells.length}) +${pts}`, 'remove');
     showScorePop(reg, pts);
 
     reg.cells.forEach(([r,c]) => {
@@ -944,43 +1629,34 @@ function triggerRemovals() {
     });
   });
 
-  // Spawn particles via setTimeout (fire-and-forget, no state dependency)
-  allBurstCells.forEach((cell, i) => {
-    setTimeout(() => spawnSplatParticles(cell.r, cell.c, cell.color),
-      i * STAGGER + BURST_DURATION * 0.3);
-  });
+  // Spawn particles in small batches so large clears do not create one timer per cell.
+  const PARTICLE_BATCH = 4;
+  for (let i = 0; i < allBurstCells.length; i += PARTICLE_BATCH) {
+    const batch = allBurstCells.slice(i, i + PARTICLE_BATCH);
+    scheduleGameTimeout(() => {
+      batch.forEach(cell => spawnSplatParticles(cell.r, cell.c, cell.color));
+    }, i * STAGGER + BURST_DURATION * 0.3);
+  }
 
   // Ripple at centroid midway
   const rippleDelay = allBurstCells.length * STAGGER * 0.45;
-  setTimeout(() => {
+  scheduleGameTimeout(() => {
     const [rx, ry] = cellCenter(Math.round(cy), Math.round(cx));
     ripples.push({ x:rx, y:ry, color: toRemove[0].color,
                    startT: performance.now(), maxR: CELL * 3.5 });
   }, rippleDelay);
 
-  // Commit grid change after animations finish — single setTimeout, no recursion
+  // Commit grid change after animations finish — single guarded timer, no recursion
   const totalDur = allBurstCells.length * STAGGER + BURST_DURATION + 80;
-  setTimeout(() => {
-    // 제거된 셀: 레벨에 따라 검은 버블 / 1차조합색 / 기본색으로 리스폰
-    const blackPerTen = LEVEL_BLACK_RATES[level - 1];
-    const mix1PerFive = LEVEL_MIX1_RATES[level - 1];
+  scheduleGameTimeout(() => {
+    // 제거된 셀: 예약 스페셜 → 레벨별 검은 버블 / 1차조합색 / 기본색 순으로 리스폰
     allBurstCells.forEach(({r,c}) => {
-      const blackPos = spawnCounter % 10;
+      const spawned = spawnReplacementColor();
       spawnCounter++;
-      const spawnDead = blackPos < blackPerTen;
+      grid[r][c] = spawned.color;
+      cellMixMap[r][c] = spawned.mixCount;
 
-      if (spawnDead) {
-        grid[r][c] = randomFrom(BASE_COLORS);
-        cellMixMap[r][c] = DEAD_THRESHOLD;
-      } else {
-        const mixPos = nonBlackSpawnCounter % 10;
-        nonBlackSpawnCounter++;
-        const spawnMix1 = mixPos < mix1PerFive;
-        grid[r][c] = spawnMix1 ? randomFrom(MIX1_COLORS) : randomFrom(BASE_COLORS);
-        cellMixMap[r][c] = 0;
-      }
-
-      spawnHistory.push({ color: grid[r][c], isDead: spawnDead, seq: spawnCounter });
+      spawnHistory.push({ color: grid[r][c], isDead: spawned.isDead, isSpecial: spawned.isSpecial, seq: spawnCounter });
       if (spawnHistory.length > 10) spawnHistory.shift();
     });
     renderSpawnQueue();
@@ -1046,6 +1722,100 @@ function spawnSplatParticles(r, c, colorKey) {
       drip: true,
     });
   }
+  trimParticles();
+}
+
+function trimParticles() {
+  if (particles.length > MAX_PARTICLES) {
+    particles.splice(0, particles.length - MAX_PARTICLES);
+  }
+}
+
+// ═══════════════════════════════════════════════
+// [SPECIAL BURST] 스페셜 버블 발동 시 고유 파티클 이펙트
+// ═══════════════════════════════════════════════
+function spawnSpecialBurst(type, cells) {
+  cells.forEach(([r, c]) => {
+    const [x, y] = cellCenter(r, c);
+    switch (type) {
+      case 'Bm': { // BOMB: many fast large orange/red shards in all directions
+        const n = 14 + Math.floor(Math.random()*6);
+        for (let i = 0; i < n; i++) {
+          const angle = (Math.PI*2*i/n) + (Math.random()-0.5)*0.6;
+          const spd   = 3.5 + Math.random()*4.5;
+          particles.push({ x, y,
+            vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+            r: 4 + Math.random()*6, pr:210, pg:60+Math.floor(Math.random()*60), pb:0,
+            life:1, decay:0.018+Math.random()*0.012, gravity:0.12+Math.random()*0.06 });
+        }
+        break;
+      }
+      case 'Rc': { // RECYCLE: slow green leaves drifting upward
+        const n = 10 + Math.floor(Math.random()*4);
+        for (let i = 0; i < n; i++) {
+          const angle = -Math.PI/2 + (Math.random()-0.5)*1.6;
+          const spd   = 1.2 + Math.random()*1.8;
+          particles.push({ x, y,
+            vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+            r: 3 + Math.random()*4, pr:0, pg:180+Math.floor(Math.random()*60), pb:80,
+            life:1, decay:0.012+Math.random()*0.008, gravity:-0.04+Math.random()*0.03 });
+        }
+        break;
+      }
+      case 'Gc': { // LUCKY: tiny pink/gold sparkles in all directions
+        const n = 16 + Math.floor(Math.random()*8);
+        for (let i = 0; i < n; i++) {
+          const angle = Math.random()*Math.PI*2;
+          const spd   = 1.5 + Math.random()*3.5;
+          const warm  = Math.random() > 0.5;
+          particles.push({ x, y,
+            vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+            r: 1.5+Math.random()*3, pr:warm?255:255, pg:warm?20:210, pb:warm?140:100,
+            life:1, decay:0.020+Math.random()*0.018, gravity:0.02+Math.random()*0.04 });
+        }
+        break;
+      }
+      case 'Ls': { // LASER: fast horizontal cyan streaks
+        const n = 12 + Math.floor(Math.random()*5);
+        for (let i = 0; i < n; i++) {
+          const dir   = Math.random() > 0.5 ? 1 : -1;
+          const spd   = 4 + Math.random()*5;
+          particles.push({ x, y,
+            vx: dir*(spd+Math.random()*2), vy: (Math.random()-0.5)*1.2,
+            r: 2+Math.random()*3.5, pr:0, pg:220+Math.floor(Math.random()*35), pb:255,
+            life:1, decay:0.025+Math.random()*0.015, gravity:0.01 });
+        }
+        break;
+      }
+      case 'Cl': { // CLEAN: soft light-blue bubbles floating up
+        const n = 10 + Math.floor(Math.random()*5);
+        for (let i = 0; i < n; i++) {
+          const angle = -Math.PI/2 + (Math.random()-0.5)*2.0;
+          const spd   = 1.0 + Math.random()*2.2;
+          particles.push({ x, y,
+            vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+            r: 3+Math.random()*5, pr:160, pg:220+Math.floor(Math.random()*35), pb:255,
+            life:1, decay:0.010+Math.random()*0.010, gravity:-0.05+Math.random()*0.04 });
+        }
+        break;
+      }
+      case 'Rb': { // RAINBOW: multi-color burst from rainbow palette
+        const palette = [[255,50,50],[255,165,0],[255,220,0],[50,220,80],[0,180,255],[160,80,255]];
+        const n = 18 + Math.floor(Math.random()*6);
+        for (let i = 0; i < n; i++) {
+          const angle = (Math.PI*2*i/n) + (Math.random()-0.5)*0.5;
+          const spd   = 2.5 + Math.random()*3.5;
+          const [pr,pg,pb] = palette[i % palette.length];
+          particles.push({ x, y,
+            vx: Math.cos(angle)*spd, vy: Math.sin(angle)*spd,
+            r: 2.5+Math.random()*4, pr, pg, pb,
+            life:1, decay:0.015+Math.random()*0.012, gravity:0.06+Math.random()*0.04 });
+        }
+        break;
+      }
+    }
+  });
+  trimParticles();
 }
 
 // ═══════════════════════════════════════════════
@@ -1075,8 +1845,8 @@ function loop(ts) {
     burstCells.length > 0 ||
     ripples.length > 0 ||
     appearCells.length > 0 ||
-    isAnimating ||
-    missions.some(m => !m.completed); // 미션 진행중엔 글로우 위해 계속 렌더
+    specialTriggers.length > 0 ||
+    isAnimating;
 
   if (stillActive) {
     rafId = requestAnimationFrame(loop);
@@ -1116,7 +1886,7 @@ function cellCenter(r,c) {
 
 // Get burst scale/alpha for a cell at current time
 function getBurstState(r, c, now) {
-  const b = burstCells.find(b => b.r===r && b.c===c);
+  const b = frameBurstMap?.get(`${r},${c}`) ?? burstCells.find(b => b.r===r && b.c===c);
   if (!b) return null;
   const elapsed = now - b.startT;
   if (elapsed < 0) return { scale: 1, alpha: 1, phase: 'waiting' };
@@ -1143,7 +1913,7 @@ function getBurstState(r, c, now) {
 }
 
 function getAppearState(r, c, now) {
-  const a = appearCells.find(a => a.r===r && a.c===c);
+  const a = frameAppearMap?.get(`${r},${c}`) ?? appearCells.find(a => a.r===r && a.c===c);
   if (!a) return null;
   const t = Math.min((now - a.startT) / 280, 1);
   if (t >= 1) {
@@ -1158,6 +1928,9 @@ function getAppearState(r, c, now) {
 }
 
 function renderAll(now) {
+  frameBurstMap = new Map(burstCells.map(b => [`${b.r},${b.c}`, b]));
+  frameAppearMap = new Map(appearCells.map(a => [`${a.r},${a.c}`, a]));
+
   ctx.clearRect(0,0,W,H);
 
   // Background
@@ -1195,6 +1968,228 @@ function renderAll(now) {
 
   // Particles on top
   drawParticles();
+  // Special trigger FX (topmost layer)
+  drawSpecialTriggers(now);
+  frameBurstMap = null;
+  frameAppearMap = null;
+}
+
+// ═══════════════════════════════════════════════
+// [SPECIAL TRIGGER FX] 스페셜 버블 발동 이펙트
+// ═══════════════════════════════════════════════
+const SPECIAL_TRIGGER_DUR = { Bm:650, Rc:900, Gc:750, Ls:550, Cl:850, Rb:950 };
+
+function spawnSpecialTrigger(type, specialCells, extra = {}) {
+  const cx = specialCells.reduce((s,[r,c]) => s + PAD+c*CELL+CELL/2, 0) / specialCells.length;
+  const cy = specialCells.reduce((s,[r,c]) => s + PAD+r*CELL+CELL/2, 0) / specialCells.length;
+  specialTriggers.push({ type, x:cx, y:cy, startT: performance.now(),
+                         duration: SPECIAL_TRIGGER_DUR[type] ?? 700, ...extra });
+}
+
+function drawSpecialTriggers(now) {
+  specialTriggers = specialTriggers.filter(tr => {
+    const elapsed = now - tr.startT;
+    const t = Math.min(elapsed / tr.duration, 1);
+    if (t >= 1) return false;
+
+    ctx.save();
+    const { x, y } = tr;
+
+    switch (tr.type) {
+
+      case 'Bm': { // BOMB — 폭발 충격파 + 플래시
+        // 충격파 링 3개 (지연 있음)
+        for (let i = 0; i < 3; i++) {
+          const d  = i * 0.18;
+          const tp = Math.max(0, (t - d) / (1 - d));
+          if (tp <= 0) continue;
+          const radius = tp * CELL * (4.5 - i * 0.8);
+          const alpha  = (1 - tp) * (0.85 - i * 0.2);
+          if (alpha <= 0) continue;
+          ctx.strokeStyle = `rgba(255,${Math.floor(60 + 80 * (1-tp))},0,${alpha})`;
+          ctx.lineWidth   = Math.max(1, 6 * (1 - tp));
+          ctx.shadowColor = 'rgba(255,120,0,0.9)'; ctx.shadowBlur = 18;
+          ctx.beginPath(); ctx.arc(x, y, radius, 0, Math.PI*2); ctx.stroke();
+        }
+        // 중심 섬광
+        if (t < 0.38) {
+          const ft  = t / 0.38;
+          const fa  = Math.sin(ft * Math.PI) * 0.95;
+          const fr  = CELL * 2.8 * Math.sin(ft * Math.PI * 0.5);
+          const grd = ctx.createRadialGradient(x, y, 0, x, y, Math.max(1,fr));
+          grd.addColorStop(0,   `rgba(255,255,220,${fa})`);
+          grd.addColorStop(0.45,`rgba(255,140,0,${fa * 0.6})`);
+          grd.addColorStop(1,   'rgba(255,60,0,0)');
+          ctx.fillStyle = grd;
+          ctx.beginPath(); ctx.arc(x, y, Math.max(1,fr), 0, Math.PI*2); ctx.fill();
+        }
+        break;
+      }
+
+      case 'Rc': { // RECYCLE — 녹색 파동이 필드 전체로 퍼짐
+        const maxR = Math.hypot(W, H);
+        // 바깥 퍼지는 파동
+        const rOuter = t * maxR;
+        ctx.strokeStyle = `rgba(0,220,130,${(1-t)*0.4})`;
+        ctx.lineWidth   = Math.max(1, 10 * (1-t));
+        ctx.shadowColor = 'rgba(0,255,140,0.7)'; ctx.shadowBlur = 22;
+        ctx.beginPath(); ctx.arc(x, y, rOuter, 0, Math.PI*2); ctx.stroke();
+        // 내부 밝은 링
+        if (t < 0.65) {
+          const r2  = (t / 0.65) * CELL * 3.5;
+          const a2  = (1 - t / 0.65) * 0.75;
+          ctx.strokeStyle = `rgba(60,255,170,${a2})`;
+          ctx.lineWidth   = 3; ctx.shadowBlur = 14;
+          ctx.beginPath(); ctx.arc(x, y, r2, 0, Math.PI*2); ctx.stroke();
+        }
+        // 회전 호 3개
+        const rot = t * Math.PI * 5;
+        for (let i = 0; i < 3; i++) {
+          const a1 = rot + i * (Math.PI*2/3);
+          ctx.strokeStyle = `rgba(0,255,150,${(1-t)*0.9})`;
+          ctx.lineWidth   = 3; ctx.lineCap = 'round'; ctx.shadowBlur = 10;
+          ctx.beginPath(); ctx.arc(x, y, CELL*(1.2 + t*2.5), a1, a1+0.55); ctx.stroke();
+        }
+        break;
+      }
+
+      case 'Gc': { // LUCKY — 별 방사 + 중앙 핑크 섬광
+        if (t < 0.42) {
+          const ft  = t / 0.42;
+          const fa  = Math.sin(ft * Math.PI) * 0.9;
+          const fr  = CELL * 3 * Math.sin(ft * Math.PI * 0.5);
+          const grd = ctx.createRadialGradient(x, y, 0, x, y, Math.max(1,fr));
+          grd.addColorStop(0,   `rgba(255,255,255,${fa})`);
+          grd.addColorStop(0.4, `rgba(255,80,200,${fa*0.7})`);
+          grd.addColorStop(1,   'rgba(255,20,140,0)');
+          ctx.fillStyle = grd;
+          ctx.beginPath(); ctx.arc(x, y, Math.max(1,fr), 0, Math.PI*2); ctx.fill();
+        }
+        // 8방향 빔
+        for (let i = 0; i < 8; i++) {
+          const a   = (i / 8) * Math.PI*2 + t * 0.8;
+          const r1  = t * CELL * 0.4;
+          const r2  = t * CELL * 4;
+          const alp = (1 - t) * 0.95;
+          ctx.strokeStyle = `rgba(255,210,255,${alp})`;
+          ctx.lineWidth   = 2.5;
+          ctx.shadowColor = 'rgba(255,60,210,0.9)'; ctx.shadowBlur = 10;
+          ctx.beginPath();
+          ctx.moveTo(x + Math.cos(a)*r1, y + Math.sin(a)*r1);
+          ctx.lineTo(x + Math.cos(a)*r2, y + Math.sin(a)*r2);
+          ctx.stroke();
+        }
+        // 회전 반짝이
+        for (let i = 0; i < 6; i++) {
+          const a   = t*Math.PI*4 + i*(Math.PI/3);
+          const dist = CELL * (0.8 + t * 2.8);
+          const sx  = x + Math.cos(a)*dist, sy = y + Math.sin(a)*dist;
+          const sr  = 4 * (1-t);
+          const alp = (1-t) * 0.9;
+          ctx.strokeStyle = `rgba(255,255,255,${alp})`;
+          ctx.lineWidth   = 1.8; ctx.lineCap = 'round'; ctx.shadowBlur = 6;
+          ctx.beginPath();
+          ctx.moveTo(sx-sr,sy); ctx.lineTo(sx+sr,sy);
+          ctx.moveTo(sx,sy-sr); ctx.lineTo(sx,sy+sr);
+          ctx.stroke();
+        }
+        break;
+      }
+
+      case 'Ls': { // LASER — 십자 빔 (가로/세로 라인)
+        const rows = tr.rows ?? [];
+        const cols = tr.cols ?? [];
+        const peak = t < 0.25 ? t/0.25 : (1-t)/0.75;
+        const beamAlpha = Math.pow(peak, 0.6);
+        const beamW     = CELL * 0.55 * peak;
+        ctx.shadowColor = `rgba(0,230,255,${beamAlpha})`; ctx.shadowBlur = 18;
+        rows.forEach(row => {
+          const by  = PAD + row*CELL + CELL/2;
+          const grd = ctx.createLinearGradient(PAD, by, PAD+COLS*CELL, by);
+          grd.addColorStop(0,   'rgba(0,230,255,0)');
+          grd.addColorStop(0.15,`rgba(0,230,255,${beamAlpha})`);
+          grd.addColorStop(0.85,`rgba(0,230,255,${beamAlpha})`);
+          grd.addColorStop(1,   'rgba(0,230,255,0)');
+          ctx.strokeStyle = grd; ctx.lineWidth = Math.max(1, beamW);
+          ctx.beginPath(); ctx.moveTo(PAD,by); ctx.lineTo(PAD+COLS*CELL,by); ctx.stroke();
+          // 전기 테두리
+          ctx.strokeStyle = `rgba(200,255,255,${beamAlpha*0.4})`;
+          ctx.lineWidth   = Math.max(0.5, beamW*1.3);
+          ctx.beginPath(); ctx.moveTo(PAD,by); ctx.lineTo(PAD+COLS*CELL,by); ctx.stroke();
+        });
+        cols.forEach(col => {
+          const bx  = PAD + col*CELL + CELL/2;
+          const grd = ctx.createLinearGradient(bx, PAD, bx, PAD+ROWS*CELL);
+          grd.addColorStop(0,   'rgba(0,230,255,0)');
+          grd.addColorStop(0.15,`rgba(0,230,255,${beamAlpha})`);
+          grd.addColorStop(0.85,`rgba(0,230,255,${beamAlpha})`);
+          grd.addColorStop(1,   'rgba(0,230,255,0)');
+          ctx.strokeStyle = grd; ctx.lineWidth = Math.max(1, beamW);
+          ctx.beginPath(); ctx.moveTo(bx,PAD); ctx.lineTo(bx,PAD+ROWS*CELL); ctx.stroke();
+          ctx.strokeStyle = `rgba(200,255,255,${beamAlpha*0.4})`;
+          ctx.lineWidth   = Math.max(0.5, beamW*1.3);
+          ctx.beginPath(); ctx.moveTo(bx,PAD); ctx.lineTo(bx,PAD+ROWS*CELL); ctx.stroke();
+        });
+        break;
+      }
+
+      case 'Cl': { // CLEAN — 물결 링 4개 연속 퍼짐
+        for (let i = 0; i < 4; i++) {
+          const d   = i * 0.18;
+          const tp  = Math.max(0, (t - d) / (1 - d));
+          if (tp <= 0) continue;
+          const r   = tp * CELL * 5.5;
+          const alp = (1 - tp) * 0.6;
+          ctx.strokeStyle = `rgba(190,240,255,${alp})`;
+          ctx.lineWidth   = Math.max(0.5, 4 * (1-tp));
+          ctx.shadowColor = 'rgba(130,210,255,0.7)'; ctx.shadowBlur = 14;
+          ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI*2); ctx.stroke();
+        }
+        // 중심 부드러운 섬광
+        if (t < 0.35) {
+          const ft  = t / 0.35;
+          const fa  = Math.sin(ft*Math.PI) * 0.75;
+          const fr  = CELL * 2 * ft;
+          const grd = ctx.createRadialGradient(x,y,0,x,y,Math.max(1,fr));
+          grd.addColorStop(0, `rgba(220,250,255,${fa})`);
+          grd.addColorStop(1, 'rgba(130,210,255,0)');
+          ctx.fillStyle = grd;
+          ctx.beginPath(); ctx.arc(x,y,Math.max(1,fr),0,Math.PI*2); ctx.fill();
+        }
+        break;
+      }
+
+      case 'Rb': { // RAINBOW — 무지개 바퀴가 밖으로 퍼짐
+        const rot  = t * Math.PI * 4;
+        const segs = 12;
+        const r    = t * CELL * 5.5;
+        for (let i = 0; i < segs; i++) {
+          const a1  = rot + (i / segs) * Math.PI*2;
+          const a2  = a1 + (Math.PI*2/segs) * 0.72;
+          const hue = (i / segs) * 360 + t * 200;
+          ctx.strokeStyle = `hsla(${hue},100%,72%,${(1-t)*0.9})`;
+          ctx.shadowColor  = `hsla(${hue},100%,60%,0.8)`;
+          ctx.shadowBlur   = 16;
+          ctx.lineWidth    = Math.max(1, 7*(1-t));
+          ctx.lineCap      = 'round';
+          ctx.beginPath(); ctx.arc(x, y, r, a1, a2); ctx.stroke();
+        }
+        // 내부 회전 링
+        if (t < 0.5) {
+          const r2   = (t/0.5) * CELL * 2;
+          const hue2 = t * 360;
+          ctx.strokeStyle = `hsla(${hue2},100%,80%,${(1-t/0.5)*0.85})`;
+          ctx.lineWidth   = 3; ctx.shadowBlur = 10;
+          ctx.beginPath(); ctx.arc(x,y,r2,0,Math.PI*2); ctx.stroke();
+        }
+        break;
+      }
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+    return true;
+  });
 }
 
 function drawRipples(now) {
@@ -1229,11 +2224,7 @@ function drawParticles() {
   for (const p of particles) {
     const drawR = Math.max(0.5, p.r * p.life);
     ctx.globalAlpha = p.life * 0.92;
-    const gd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, drawR);
-    gd.addColorStop(0, `rgba(${Math.min(255,p.pr+60)},${Math.min(255,p.pg+50)},${Math.min(255,p.pb+40)},1)`);
-    gd.addColorStop(0.5, `rgba(${p.pr},${p.pg},${p.pb},0.9)`);
-    gd.addColorStop(1, `rgba(${p.pr},${p.pg},${p.pb},0)`);
-    ctx.fillStyle = gd;
+    ctx.fillStyle = `rgb(${Math.min(255,p.pr+35)},${Math.min(255,p.pg+30)},${Math.min(255,p.pb+25)})`;
     ctx.beginPath();
     if (p.drip) {
       ctx.save();
@@ -1252,13 +2243,158 @@ function drawParticles() {
   ctx.restore();
 }
 
+// ── 스페셜 버블 타입별 캔버스 이펙트 ─────────────────────────────
+function drawSpecialFX(color, now, x, y, blobR) {
+  const t = now * 0.001;
+  ctx.save();
+  // 셀 영역으로 클리핑 — shadow가 인접 버블로 번지는 현상 방지
+  ctx.beginPath();
+  ctx.arc(x, y, CELL * 0.72, 0, Math.PI * 2);
+  ctx.clip();
+  ctx.globalAlpha = 1;
+
+  switch (color) {
+    case 'Bm': { // BOMB — 위험 링 + 회전 스파이크
+      const pulse = 0.5 + 0.5 * Math.sin(t * 7);
+      // 위험 링
+      ctx.strokeStyle = `rgba(255,${Math.floor(60 + 80*pulse)},0,${0.65+0.35*pulse})`;
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = 'rgba(255,80,0,0.9)';
+      ctx.shadowBlur = 10 + 8*pulse;
+      ctx.beginPath();
+      ctx.arc(x, y, blobR * 1.38, 0, Math.PI*2);
+      ctx.stroke();
+      // 4개 회전 스파이크
+      const rot = t * 3.5;
+      for (let i = 0; i < 4; i++) {
+        const a = rot + i * (Math.PI / 2);
+        const r1 = blobR * 1.15, r2 = blobR * 1.65;
+        ctx.strokeStyle = `rgba(255,220,0,${0.6+0.4*pulse})`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(255,180,0,0.8)'; ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.moveTo(x + Math.cos(a)*r1, y + Math.sin(a)*r1);
+        ctx.lineTo(x + Math.cos(a)*r2, y + Math.sin(a)*r2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'Rc': { // RECYCLE — 3개 회전 호 (재활용 심볼)
+      const rot = t * 1.8;
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.shadowColor = 'rgba(0,255,140,0.7)'; ctx.shadowBlur = 10;
+      for (let i = 0; i < 3; i++) {
+        const a = rot + i * (Math.PI * 2 / 3);
+        ctx.strokeStyle = `rgba(0,230,140,0.85)`;
+        ctx.beginPath();
+        ctx.arc(x, y, blobR * 1.38, a, a + Math.PI * 0.55);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'Gc': { // LUCKY — 6개 반짝이 별 궤도
+      const rot = t * 2.2;
+      ctx.lineCap = 'round';
+      for (let i = 0; i < 6; i++) {
+        const a = rot + i * (Math.PI / 3);
+        const dist = blobR * (1.35 + 0.15 * Math.sin(t * 5 + i * 1.2));
+        const sx = x + Math.cos(a) * dist;
+        const sy = y + Math.sin(a) * dist;
+        const sr = 2.5 + 1.5 * Math.abs(Math.sin(t * 6 + i * 0.9));
+        const alpha = 0.5 + 0.5 * Math.sin(t * 4.5 + i * 0.7);
+        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = 'rgba(255,120,220,0.9)'; ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.moveTo(sx - sr, sy); ctx.lineTo(sx + sr, sy);
+        ctx.moveTo(sx, sy - sr); ctx.lineTo(sx, sy + sr);
+        ctx.stroke();
+        // 대각
+        const sr2 = sr * 0.65;
+        ctx.strokeStyle = `rgba(255,255,255,${alpha*0.6})`;
+        ctx.beginPath();
+        ctx.moveTo(sx-sr2,sy-sr2); ctx.lineTo(sx+sr2,sy+sr2);
+        ctx.moveTo(sx+sr2,sy-sr2); ctx.lineTo(sx-sr2,sy+sr2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'Ls': { // LASER — 전기 링 + 스캔 빔
+      const rot = t * 5;
+      // 재글재글 전기 링 (deterministic jitter; no render-time randomness)
+      const segs = 16;
+      ctx.strokeStyle = 'rgba(0,230,255,0.85)';
+      ctx.lineWidth = 2;
+      ctx.shadowColor = 'rgba(0,200,255,1)'; ctx.shadowBlur = 16;
+      ctx.beginPath();
+      const jitterPhase = Math.floor(t * 18);
+      for (let i = 0; i <= segs; i++) {
+        const a = (i / segs) * Math.PI * 2;
+        const jitter = Math.sin(i * 12.9898 + jitterPhase * 4.1414) * blobR * 0.11;
+        const r = blobR * 1.4 + jitter;
+        const px = x + Math.cos(a) * r, py = y + Math.sin(a) * r;
+        i === 0 ? ctx.moveTo(px,py) : ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+      ctx.stroke();
+      // 회전 스캔 빔
+      const bx = x + Math.cos(rot) * blobR * 1.7;
+      const by = y + Math.sin(rot) * blobR * 1.7;
+      const grd = ctx.createLinearGradient(x, y, bx, by);
+      grd.addColorStop(0, 'rgba(0,240,255,0.9)');
+      grd.addColorStop(1, 'rgba(0,240,255,0)');
+      ctx.strokeStyle = grd;
+      ctx.lineWidth = 2.5;
+      ctx.shadowBlur = 12;
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(bx,by); ctx.stroke();
+      break;
+    }
+    case 'Cl': { // CLEAN — 밖으로 퍼지는 물결 링 3개
+      for (let i = 0; i < 3; i++) {
+        const phase = ((t * 0.75 + i * 0.33) % 1);
+        const r = blobR * (1.1 + phase * 0.9);
+        const alpha = (1 - phase) * 0.7;
+        ctx.strokeStyle = `rgba(200,240,255,${alpha})`;
+        ctx.lineWidth = 2;
+        ctx.shadowColor = 'rgba(160,220,255,0.6)'; ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      break;
+    }
+    case 'Rb': { // RAINBOW — 무지개 호 6개 회전
+      const rot = t * 1.2;
+      const segs = 6;
+      ctx.lineWidth = 3; ctx.lineCap = 'round';
+      for (let i = 0; i < segs; i++) {
+        const a1 = rot + (i / segs) * Math.PI * 2;
+        const a2 = a1 + (Math.PI * 2 / segs) * 0.7;
+        const hue = ((i / segs) * 360 + t * 80) % 360;
+        ctx.strokeStyle = `hsla(${hue},100%,72%,0.9)`;
+        ctx.shadowColor  = `hsla(${hue},100%,60%,0.8)`;
+        ctx.shadowBlur   = 12;
+        ctx.beginPath();
+        ctx.arc(x, y, blobR * 1.38, a1, a2);
+        ctx.stroke();
+      }
+      break;
+    }
+  }
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
 function drawRegion(reg, isSelected, isTarget, now) {
   if (!reg.cells.length) return;
   const [r0,g0,b0] = toRgb(reg.color);
   const BLOB_R = CELL * 0.44;
-  const DEAD = reg.isDead;
-  const IS_MISSION = !DEAD && isMissionColor(reg.color);
-  const IS_READY   = IS_MISSION && reg.cells.length >= REMOVE_SIZE; // 터질 수 있는 상태
+  const DEAD    = reg.isDead;
+  const SPECIAL = !DEAD && (COLORS[reg.color]?.special === true);
+  const IS_MISSION = !DEAD && !SPECIAL && isMissionColor(reg.color);
+  const IS_READY   = IS_MISSION && reg.cells.length >= REMOVE_SIZE;
 
   // Collect per-cell overrides from burst/appear animations
   const cellStates = {};
@@ -1293,6 +2429,10 @@ function drawRegion(reg, isSelected, isTarget, now) {
     const pulse = 0.5 + 0.5 * Math.sin(now * 0.003);
     ctx.shadowColor = `rgba(${r0},${g0},${b0},${0.35 + 0.25 * pulse})`;
     ctx.shadowBlur = 10 + 6 * pulse;
+  } else if (SPECIAL) {
+    const pulse = 0.5 + 0.5 * Math.sin(now * 0.005);
+    ctx.shadowColor = `rgba(${r0},${g0},${b0},${0.7 + 0.3 * pulse})`;
+    ctx.shadowBlur = 20 + 14 * pulse;
   } else {
     ctx.shadowColor = `rgba(${r0},${g0},${b0},0.18)`;
     ctx.shadowBlur = 8;
@@ -1367,35 +2507,23 @@ function drawRegion(reg, isSelected, isTarget, now) {
       ctx.shadowBlur = 24 * pulse;
     }
 
-    if (DEAD) {
-      const gd = ctx.createRadialGradient(x-blobR*0.3,y-blobR*0.3,0,x,y,blobR);
-      gd.addColorStop(0,'rgba(55,50,70,0.95)');
-      gd.addColorStop(0.5,'rgba(28,25,40,0.98)');
-      gd.addColorStop(1,'rgba(15,12,22,1)');
-      ctx.fillStyle = gd;
-    } else {
-      const gd = ctx.createRadialGradient(x-blobR*0.35,y-blobR*0.38,0,x,y,blobR*1.1);
-      gd.addColorStop(0, `rgba(${Math.min(255,r0+60)},${Math.min(255,g0+50)},${Math.min(255,b0+40)},1)`);
-      gd.addColorStop(0.45, `rgba(${r0},${g0},${b0},1)`);
-      gd.addColorStop(0.8,  `rgba(${Math.max(0,r0-30)},${Math.max(0,g0-30)},${Math.max(0,b0-25)},1)`);
-      gd.addColorStop(1,    `rgba(${Math.max(0,r0-55)},${Math.max(0,g0-55)},${Math.max(0,b0-50)},0.9)`);
-      ctx.fillStyle = gd;
-    }
+    const sprite = getBubbleSprite(reg.color, DEAD, SPECIAL);
+    const drawSize = sprite.width * scale;
+    ctx.drawImage(sprite, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
-    ctx.beginPath();
-    ctx.arc(x, y, blobR, 0, Math.PI*2);
-    ctx.fill();
-
-    // Gloss
-    if (!DEAD) {
-      const hl = ctx.createRadialGradient(x-blobR*0.25,y-blobR*0.3,0,x-blobR*0.1,y-blobR*0.15,blobR*0.55);
-      hl.addColorStop(0,'rgba(255,255,255,0.45)');
-      hl.addColorStop(0.6,'rgba(255,255,255,0.08)');
-      hl.addColorStop(1,'rgba(255,255,255,0)');
-      ctx.fillStyle = hl;
-      ctx.beginPath();
-      ctx.arc(x, y, blobR, 0, Math.PI*2);
-      ctx.fill();
+    // 스페셜 버블 타입별 이펙트 + 라벨
+    if (SPECIAL) {
+      drawSpecialFX(reg.color, now, x, y, blobR);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      const label = SPECIAL_LABELS[reg.color] || reg.color;
+      ctx.font = `bold ${Math.max(7, blobR * 0.38)}px "DM Mono", monospace`;
+      ctx.fillStyle = 'rgba(255,255,255,0.95)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.shadowColor = `rgba(0,0,0,0.6)`; ctx.shadowBlur = 4;
+      ctx.fillText(label, x, y);
+      ctx.restore();
     }
 
     ctx.globalAlpha = 1;
@@ -1466,6 +2594,7 @@ function getCell(e) {
 }
 
 canvas.addEventListener('mousedown', e => {
+  if (!gameStarted || gameEnded) return;
   if (isAnimating) return;
   const cell = getCell(e);
   if (!cell) return;
@@ -1501,6 +2630,47 @@ document.addEventListener('mouseup', () => {
   if (isDragging) { isDragging = false; dragStart = null; renderFrame(); }
 });
 
+// ── 터치 이벤트 (모바일) ─────────────────────────────────────────
+function getTouchPos(touch) {
+  return { clientX: touch.clientX, clientY: touch.clientY };
+}
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  if (!gameStarted || gameEnded) return;
+  if (isAnimating) return;
+  const cell = getCell(getTouchPos(e.touches[0]));
+  if (!cell) return;
+  isDragging = true;
+  dragStart = { ...cell, region: getRegionAt(cell.r, cell.c) };
+  hoverCell = cell;
+  renderFrame();
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const cell = getCell(getTouchPos(e.touches[0]));
+  hoverCell = cell ?? null;
+  if (isDragging) renderFrame();
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (!isDragging) return;
+  isDragging = false;
+  const cell = getCell(getTouchPos(e.changedTouches[0]));
+  if (cell && dragStart) {
+    const regA = dragStart.region;
+    const regB = getRegionAt(cell.r, cell.c);
+    if (regA && regB && regA !== regB && areRegionsAdjacent(regA, regB)) {
+      doMerge(regA, regB);
+    }
+  }
+  dragStart = null;
+  hoverCell = null;
+  renderFrame();
+}, { passive: false });
+
 // Tooltip
 function updateTooltip(e, cell) {
   const reg = getRegionAt(cell.r, cell.c);
@@ -1530,7 +2700,7 @@ function showScorePop(reg, pts) {
   el.style.left = (rect.left + cx*scale - 20) + 'px';
   el.style.top  = (rect.top  + cy*scale - 10) + 'px';
   document.body.appendChild(el);
-  setTimeout(()=>el.remove(), 900);
+  scheduleGameTimeout(()=>el.remove(), 900);
 }
 
 // ═══════════════════════════════════════════════
@@ -1540,6 +2710,13 @@ function showScorePop(reg, pts) {
 function renderSpawnQueue() {
   const el = document.getElementById('spawn-queue');
   el.innerHTML = '';
+  const visibleQueue = currentMode === 'classic'
+    ? spawnHistory.slice(0, 10)
+    : [
+        ...pendingSpecialSpawns.map(color => ({ color, isDead:false, isSpecial:true, seq:'NEXT' })),
+        ...spawnHistory
+      ].slice(0, 10);
+
   for (let i = 0; i < 10; i++) {
     const slot = document.createElement('div');
     slot.className = 'sq-slot';
@@ -1550,13 +2727,14 @@ function renderSpawnQueue() {
     const num = document.createElement('div');
     num.className = 'sq-num';
 
-    if (i < spawnHistory.length) {
-      const item = spawnHistory[i];
+    if (i < visibleQueue.length) {
+      const item = visibleQueue[i];
       if (item.isDead) {
         bubble.classList.add('dead');
       } else {
         bubble.style.background = toCss(item.color);
       }
+      if (item.isSpecial) bubble.classList.add('special');
       // 전역 생성 순번을 버블 안에 표시
       num.textContent = item.seq;
     } else {
@@ -1609,21 +2787,30 @@ function buildMixTable() {
 // ═══════════════════════════════════════════════
 // [INIT] 게임 초기화 — New Game 버튼 & 최초 로드 시 호출
 // ═══════════════════════════════════════════════
-function initGame() {
+function initGame(mode = currentMode) {
+  currentMode = mode;
+  gameRunId++;
+  clearGameTimers();
+  stopLoop();
+  gameStarted = true;
+  gameEnded = false;
+  timerWaitingForTutorial = false;
+  timeLeft = currentMode === 'classic' ? CLASSIC_TIME_LIMIT : 0;
   _rid = 0;
   score = 0; mergeCount = 0; level = 1; spawnCounter = 0; nonBlackSpawnCounter = 0;
   dragStart = null; hoverCell = null;
   isDragging = false; isAnimating = false;
-  burstCells = []; particles = []; ripples = []; appearCells = [];
-  stopLoop();
+  burstCells = []; particles = []; ripples = []; appearCells = []; specialTriggers = [];
 
   document.getElementById('score').textContent = '0';
   document.getElementById('merges').textContent = '0';
   document.getElementById('level').textContent = '1';
-  document.getElementById('level-next').textContent = `next: ${LEVEL_THRESHOLDS[1].toLocaleString()}`;
+  document.getElementById('level-next').textContent = `next: ${getLevelThresholds()[1].toLocaleString()}`;
   document.getElementById('log').innerHTML = '';
   spawnHistory = [];
+  pendingSpecialSpawns = [];
   renderSpawnQueue();
+  updateModeUi();
 
   // ── 그리드 초기화 ─────────────────────────────
   // 목표:
@@ -1703,11 +2890,21 @@ function initGame() {
   initMissions();
   buildMixTable();
   renderFrame();
-  startLoop();
   addLog('New game started!', 'merge');
+  if (currentMode === 'classic') {
+    addLog(`Classic: ${CLASSIC_TIME_LIMIT} seconds. No special bubbles.`, 'dead');
+    timerWaitingForTutorial = true;
+  } else {
+    addLog('Extreme: no time limit. Special bubbles enabled.', 'dead');
+  }
+  requestAnimationFrame(() => triggerRemovals());
+
+  document.getElementById('tutorial-overlay').classList.remove('hidden');
 }
 
-initGame();
+buildMixTable();
+renderSpawnQueue();
+updateModeUi();
 </script>
 </body>
 </html>
