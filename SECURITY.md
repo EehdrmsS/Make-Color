@@ -10,7 +10,12 @@ Do not place secrets in `make-color.html` or any frontend JavaScript.
 
 Required server-side environment variable:
 
-- `SCORE_SIGNING_SECRET`: HMAC key used by API routes to sign and verify score sessions.
+- `SCORE_SECRET_CURRENT`: HMAC key used by API routes to sign new score sessions.
+
+Optional server-side environment variables:
+
+- `SCORE_SECRET_PREVIOUS`: previous HMAC key accepted only for verification during rotation.
+- `REDIS_URL` and `REDIS_TOKEN`: Upstash Redis REST settings for shared serverless rate limits and replay protection. Without Redis, APIs fall back to in-memory limits for local/dev usage.
 
 Optional public build variable:
 
@@ -25,9 +30,13 @@ Validation includes:
 - mode allow-listing
 - integer range checks
 - session HMAC verification
+- current/previous secret rotation
+- signed score checksums bound to score, elapsed time, mode, and session id
 - session age checks
 - Classic mode elapsed-time plausibility checks
-- per-IP in-memory rate limits
+- conservative server-side score ceiling recalculation
+- replay detection for duplicate score submissions
+- composite IP, user-agent, and session-token sliding-window rate limits
 
 This is lightweight abuse resistance, not a tamper-proof leaderboard. For real competitive rankings, store server-side game events or replay summaries.
 

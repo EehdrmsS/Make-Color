@@ -959,6 +959,24 @@ function loadAdsense() {
   document.head.appendChild(script);
 }
 
+async function createScoreChecksum(payload) {
+  if (!window.crypto?.subtle || typeof TextEncoder === 'undefined') {
+    throw new Error('web_crypto_unavailable');
+  }
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(scoreSession.token),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const canonical = `${payload.score}:${payload.elapsedSeconds}:${payload.mode}:${payload.sessionId}`;
+  const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(canonical));
+  const bytes = Array.from(new Uint8Array(signature));
+  return btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
 async function startScoreSession(mode) {
   scoreSession = null;
   try {
@@ -972,6 +990,7 @@ async function startScoreSession(mode) {
     const data = await res.json();
     if (typeof data.sessionId === 'string' && typeof data.token === 'string') {
       scoreSession = data;
+      scoreSession.localStartedAt = performance.now();
     }
   } catch (err) {
     logSecurityEvent('score_session_failed', { message: err.message });
@@ -985,12 +1004,15 @@ async function submitScore(mode) {
     score: Number(score),
     level: Number(level),
     merges: Number(mergeCount),
-    elapsedSeconds: mode === 'classic' ? CLASSIC_TIME_LIMIT - timeLeft : null,
+    elapsedSeconds: mode === 'classic'
+      ? CLASSIC_TIME_LIMIT - timeLeft
+      : Math.max(0, Math.floor((performance.now() - scoreSession.localStartedAt) / 1000)),
     sessionId: scoreSession.sessionId,
     token: scoreSession.token,
   };
 
   try {
+    payload.checksum = await createScoreChecksum(payload);
     const res = await fetch('/api/submit-score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
