@@ -67,3 +67,18 @@ Recent optimization work includes:
 ## Running
 
 Open `make-color.html` directly in a browser.
+
+## Production Build
+
+Install Node.js 20 or newer, then run:
+
+```bash
+npm run check
+npm run build
+```
+
+Production assets are written to `dist/`. The build extracts CSS and JavaScript into separate files, avoids source maps, and supports deployment through Vercel or Netlify.
+
+## Security
+
+See `SECURITY.md` for deployment headers, environment variables, score validation, rate limiting, and AdSense safety notes.

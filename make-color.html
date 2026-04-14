@@ -543,6 +543,22 @@
     word-break: break-word;
   }
 
+  .small-muted {
+    font-size: 0.5rem;
+    color: #a09070;
+    margin-top: 2px;
+  }
+
+  .menu-action { background: #4a4031; font-size: 0.58rem; }
+
+  .ad-slot {
+    min-height: 90px;
+    margin-top: 12px;
+    color: #a09070;
+    font-size: 0.55rem;
+    text-align: center;
+  }
+
   /* ── Mobile responsive layout ─────────────────────────── */
   @media (max-width: 640px) {
     body { overflow-y: auto; justify-content: flex-start; padding: 12px 8px 24px; }
@@ -577,11 +593,11 @@
     <div class="menu-title">Make <span>Color!</span></div>
     <div class="menu-copy">Choose a table and start blending.</div>
     <div class="mode-list">
-      <button class="mode-btn" onclick="startGame('classic')">
+      <button class="mode-btn" data-action="start" data-mode="classic">
         <span class="mode-name">Classic</span>
         <span class="mode-desc">No special bubbles. Score as much as you can before time runs out.</span>
       </button>
-      <button class="mode-btn" onclick="startGame('extreme')">
+      <button class="mode-btn" data-action="start" data-mode="extreme">
         <span class="mode-name">Extreme</span>
         <span class="mode-desc">Special bubbles, mud clears, no time limit. Stay alive as long as you can.</span>
       </button>
@@ -595,11 +611,11 @@
     <div class="menu-copy">Classic score</div>
     <div class="game-over-score" id="final-score">0</div>
     <div class="mode-list">
-      <button class="mode-btn" onclick="startGame('classic')">
+      <button class="mode-btn" data-action="start" data-mode="classic">
         <span class="mode-name">Retry</span>
         <span class="mode-desc">Start another timed run.</span>
       </button>
-      <button class="mode-btn" onclick="showMainMenu()">
+      <button class="mode-btn" data-action="menu">
         <span class="mode-name">Menu</span>
         <span class="mode-desc">Choose a different mode.</span>
       </button>
@@ -636,7 +652,7 @@
         <p>Over-mixed bubbles turn black and block the field. They only disappear when adjacent mission bubbles burst nearby.</p>
       </div>
     </div>
-    <button class="tutorial-btn" onclick="closeTutorial()">Let's Play!</button>
+    <button class="tutorial-btn" data-action="close-tutorial">Let's Play!</button>
   </div>
 </div>
 
@@ -665,7 +681,7 @@
     <div class="card">
       <div class="card-label">Level</div>
       <div class="card-val" id="level">1</div>
-      <div id="level-next" style="font-size:0.5rem;color:#a09070;margin-top:2px;"></div>
+      <div id="level-next" class="small-muted"></div>
     </div>
 
     <div class="card">
@@ -676,7 +692,7 @@
     <div class="card">
       <div class="card-label" id="mode-stat-label">Mode</div>
       <div class="card-val" id="mode-stat">Extreme</div>
-      <div id="mode-stat-sub" style="font-size:0.5rem;color:#a09070;margin-top:2px;"></div>
+      <div id="mode-stat-sub" class="small-muted"></div>
     </div>
 
     <div class="card">
@@ -689,10 +705,12 @@
       <div id="log"></div>
     </div>
 
-    <button onclick="restartGame()">↺ New Game</button>
-    <button onclick="showMainMenu()" style="background:#4a4031;font-size:0.58rem;">Menu</button>
+    <button data-action="restart">↺ New Game</button>
+    <button class="menu-action" data-action="menu">Menu</button>
   </div>
 </div>
+
+<div class="ad-slot" id="ad-slot" aria-label="Advertisement"></div>
 
 <div id="tooltip"></div>
 
@@ -793,6 +811,7 @@ const MISSION_COLORS     = ['O','G','P','Br','Lm','Cy','Dp','Mg']; // 일반 미
 const SPECIAL_COLORS = ['Bm','Rc','Gc','Ls','Cl','Rb'];    // 스페셜 생성 후보
 const SPECIAL_READY_INTERVAL = 5;
 const CLASSIC_TIME_LIMIT = 120;
+const ADSENSE_CLIENT_ID = '%%ADSENSE_CLIENT_ID%%';
 const MISSION_COLORS_LV12 = ['O','G','P']; // 레벨 1~2 전용 — 1차 조합색만
 
 // 2차색 → 기본색 조합 역추적 테이블 (내부 로직용)
@@ -815,9 +834,14 @@ let gameStarted = false;
 let gameEnded = false;
 let timeLeft = CLASSIC_TIME_LIMIT;
 let timerWaitingForTutorial = false;
+let scoreSession = null;
 
 function setSpecialMission(color) {
   specialMission = { color: color ?? randomFrom(SPECIAL_COLORS), completed:false };
+}
+
+function isValidMode(mode) {
+  return mode === 'classic' || mode === 'extreme';
 }
 
 function formatTime(sec) {
@@ -863,12 +887,17 @@ function endClassicGame() {
   hoverCell = null;
   document.getElementById('final-score').textContent = score.toLocaleString();
   document.getElementById('game-over').classList.remove('hidden');
+  submitScore('classic');
   hideTooltip();
   stopLoop();
   renderFrame();
 }
 
 function startGame(mode) {
+  if (!isValidMode(mode)) {
+    logSecurityEvent('invalid_mode', { mode });
+    return;
+  }
   document.getElementById('main-menu').classList.add('hidden');
   document.getElementById('game-over').classList.add('hidden');
   initGame(mode);
@@ -888,6 +917,90 @@ function showMainMenu() {
   document.getElementById('tutorial-overlay').classList.add('hidden');
   document.getElementById('game-over').classList.add('hidden');
   document.getElementById('main-menu').classList.remove('hidden');
+}
+
+function setupUiActions() {
+  document.addEventListener('click', event => {
+    const btn = event.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    if (action === 'start') startGame(btn.dataset.mode);
+    else if (action === 'restart') restartGame();
+    else if (action === 'menu') showMainMenu();
+    else if (action === 'close-tutorial') closeTutorial();
+    else logSecurityEvent('unknown_ui_action', { action });
+  });
+}
+
+function logSecurityEvent(type, details = {}) {
+  const safeType = String(type).slice(0, 80);
+  const payload = {
+    type: safeType,
+    details,
+    mode: currentMode,
+    score,
+    timeLeft,
+    ts: Date.now(),
+  };
+  console.warn('[security]', payload);
+  if (navigator.sendBeacon) {
+    const body = JSON.stringify(payload);
+    navigator.sendBeacon('/api/log-event', new Blob([body], { type: 'application/json' }));
+  }
+}
+
+function loadAdsense() {
+  if (!ADSENSE_CLIENT_ID || ADSENSE_CLIENT_ID.includes('%%')) return;
+  const script = document.createElement('script');
+  script.async = true;
+  script.crossOrigin = 'anonymous';
+  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT_ID)}`;
+  script.onerror = () => logSecurityEvent('adsense_load_failed');
+  document.head.appendChild(script);
+}
+
+async function startScoreSession(mode) {
+  scoreSession = null;
+  try {
+    const res = await fetch('/api/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode }),
+      credentials: 'same-origin',
+    });
+    if (!res.ok) throw new Error(`session ${res.status}`);
+    const data = await res.json();
+    if (typeof data.sessionId === 'string' && typeof data.token === 'string') {
+      scoreSession = data;
+    }
+  } catch (err) {
+    logSecurityEvent('score_session_failed', { message: err.message });
+  }
+}
+
+async function submitScore(mode) {
+  if (!scoreSession || !isValidMode(mode)) return;
+  const payload = {
+    mode,
+    score: Number(score),
+    level: Number(level),
+    merges: Number(mergeCount),
+    elapsedSeconds: mode === 'classic' ? CLASSIC_TIME_LIMIT - timeLeft : null,
+    sessionId: scoreSession.sessionId,
+    token: scoreSession.token,
+  };
+
+  try {
+    const res = await fetch('/api/submit-score', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      credentials: 'same-origin',
+    });
+    if (!res.ok) logSecurityEvent('score_submit_rejected', { status: res.status });
+  } catch (err) {
+    logSecurityEvent('score_submit_failed', { message: err.message });
+  }
 }
 
 // ── 유틸리티 함수 ────────────────────────────────────────────────
@@ -1306,7 +1419,7 @@ function enqueueSpecialSpawn() {
 function renderMissions() {
   // 일반 미션 3개
   const el = document.getElementById('mission-slots');
-  el.innerHTML = '';
+  el.replaceChildren();
   missions.forEach((m) => {
     const slot = document.createElement('div');
     slot.className = 'mission-slot';
@@ -1324,7 +1437,7 @@ function renderMissions() {
 
   // 다음 예약 스페셜
   const goldEl = document.getElementById('gold-mission-slot');
-  goldEl.innerHTML = '';
+  goldEl.replaceChildren();
   if (currentMode === 'classic') return;
   const goldSlot = document.createElement('div');
   goldSlot.className = 'mission-slot';
@@ -1373,13 +1486,6 @@ function closeTutorial() {
     timerWaitingForTutorial = false;
     startClassicTimer();
   }
-}
-
-function debugAddScore(pts) {
-  score += pts;
-  document.getElementById('score').textContent = score;
-  checkLevelUp();
-  addLog(`[debug] +${pts} score`, 'dead');
 }
 
 function checkLevelUp() {
@@ -2632,7 +2738,7 @@ function showScorePop(reg, pts) {
 function renderSpawnQueue() {
   const el = document.getElementById('spawn-queue');
   if (!el) return;
-  el.innerHTML = '';
+  el.replaceChildren();
   const visibleQueue = currentMode === 'classic'
     ? spawnHistory.slice(0, 10)
     : [
@@ -2687,7 +2793,7 @@ function addLog(msg, type='merge') {
 //   [재료A, 재료B, 결과] 형식입니다.
 function buildMixTable() {
   const el = document.getElementById('mix-table');
-  el.innerHTML = '';
+  el.replaceChildren();
   const shown = [
     ['R','Y','O'],
     ['R','B','P'],
@@ -2696,13 +2802,22 @@ function buildMixTable() {
   shown.forEach(([a,b,res])=>{
     const row = document.createElement('div');
     row.className='mix-row';
-    row.innerHTML=`
-      <div class="dot" style="background:${toCss(a)}"></div>
-      <span class="mix-arrow">+</span>
-      <div class="dot" style="background:${toCss(b)}"></div>
-      <span class="mix-arrow">→</span>
-      <div class="dot" style="background:${toCss(res)}"></div>
-    `;
+    const dotA = document.createElement('div');
+    dotA.className = 'dot';
+    dotA.style.background = toCss(a);
+    const plus = document.createElement('span');
+    plus.className = 'mix-arrow';
+    plus.textContent = '+';
+    const dotB = document.createElement('div');
+    dotB.className = 'dot';
+    dotB.style.background = toCss(b);
+    const arrow = document.createElement('span');
+    arrow.className = 'mix-arrow';
+    arrow.textContent = '→';
+    const dotRes = document.createElement('div');
+    dotRes.className = 'dot';
+    dotRes.style.background = toCss(res);
+    row.append(dotA, plus, dotB, arrow, dotRes);
     el.appendChild(row);
   });
 }
@@ -2711,6 +2826,10 @@ function buildMixTable() {
 // [INIT] 게임 초기화 — New Game 버튼 & 최초 로드 시 호출
 // ═══════════════════════════════════════════════
 function initGame(mode = currentMode) {
+  if (!isValidMode(mode)) {
+    logSecurityEvent('invalid_init_mode', { mode });
+    mode = 'extreme';
+  }
   currentMode = mode;
   gameRunId++;
   clearGameTimers();
@@ -2729,7 +2848,7 @@ function initGame(mode = currentMode) {
   document.getElementById('merges').textContent = '0';
   document.getElementById('level').textContent = '1';
   document.getElementById('level-next').textContent = `next: ${getLevelThresholds()[1].toLocaleString()}`;
-  document.getElementById('log').innerHTML = '';
+  document.getElementById('log').replaceChildren();
   spawnHistory = [];
   pendingSpecialSpawns = [];
   renderSpawnQueue();
@@ -2821,10 +2940,13 @@ function initGame(mode = currentMode) {
     addLog('Extreme: no time limit. Special bubbles enabled.', 'dead');
   }
   requestAnimationFrame(() => triggerRemovals());
+  startScoreSession(currentMode);
 
   document.getElementById('tutorial-overlay').classList.remove('hidden');
 }
 
+setupUiActions();
+loadAdsense();
 buildMixTable();
 renderSpawnQueue();
 updateModeUi();

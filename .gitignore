@@ -1,0 +1,12 @@
+.env
+.env.*
+!.env.example
+
+node_modules/
+dist/
+.vercel/
+.netlify/
+.venv/
+
+*.log
+*.map
