@@ -43,7 +43,7 @@ Extreme is the ongoing survival mode.
 
 Special bubbles no longer appear through color mixing.
 
-In Extreme mode, the UI shows the next special bubble. Every 5 mission clears, that displayed special is queued into the spawn queue. The next replacement cell spawns that special bubble.
+In Extreme mode, the UI shows the next special bubble. Every 5 mission clears, that displayed special is reserved for the next replacement cell.
 
 Special bubbles can be triggered at any time by merging them with another region.
 
