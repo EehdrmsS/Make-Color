@@ -1018,6 +1018,11 @@ const CLASSIC_TIME_LIMIT = 120;
 const EXTREME_TIME_LIMIT = 30;
 const EXTREME_MISSION_TIME_BONUS = 10;
 const EXTREME_REVIVE_TIME = 10;
+const EXTREME_TIMER_CAPS = [
+  { maxLevel: 2, seconds: 60 },
+  { maxLevel: 3, seconds: 45 },
+  { maxLevel: Infinity, seconds: 30 },
+];
 const GAME_STATES = {
   PLAYING: 'PLAYING',
   AD_OFFER: 'AD_OFFER',
@@ -1062,6 +1067,15 @@ function formatTime(sec) {
   const m = Math.floor(sec / 60);
   const s = sec % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function getExtremeTimerCap(lv = level) {
+  return EXTREME_TIMER_CAPS.find(rule => lv <= rule.maxLevel).seconds;
+}
+
+function clampExtremeTimer() {
+  if (currentMode !== 'extreme') return;
+  timeLeft = Math.min(timeLeft, getExtremeTimerCap());
 }
 
 function shouldUseMobileMode() {
@@ -1145,7 +1159,7 @@ const GameManager = {
 
   onMissionClear() {
     if (currentMode !== 'extreme' || gameEnded) return;
-    timeLeft += EXTREME_MISSION_TIME_BONUS;
+    timeLeft = Math.min(timeLeft + EXTREME_MISSION_TIME_BONUS, getExtremeTimerCap());
     this.extremeRounds += 1;
     this.updateTimerUi();
     updateModeUi();
@@ -1941,6 +1955,9 @@ function checkLevelUp() {
     const nextThreshold = thresholds[level] ?? null;
     const nextEl = document.getElementById('level-next');
     nextEl.textContent = nextThreshold ? `next: ${nextThreshold.toLocaleString()}` : 'MAX';
+    clampExtremeTimer();
+    GameManager.updateTimerUi();
+    updateModeUi();
     showLevelUpFlash(level);
     addLog(`Level Up! Lv.${level} — ${LEVEL_BLACK_RATES[level-1]}/10 dead spawns 💀`, 'dead');
   }
