@@ -1272,9 +1272,7 @@ const GameManager = {
     this.extremeRounds += 1;
     this.updateTimerUi();
     updateModeUi();
-    if (window.AdManager?.trackAdFrequency()) {
-      this.pendingRoundBreak = true;
-    }
+    this.pendingRoundBreak = false;
   },
 
   consumeRoundBreakRequest() {
@@ -2046,11 +2044,7 @@ function onMissionComplete(color) {
     addLog(`New mission: make ${COLORS[newColor].name}!`, 'merge');
     renderMissions();
     // 새 미션이 이미 필드에 조건을 만족하는 region이 있을 수 있으므로 즉시 체크
-    if (GameManager.consumeRoundBreakRequest()) {
-      GameManager.showRoundResult();
-    } else {
-      requestAnimationFrame(() => triggerRemovals());
-    }
+    requestAnimationFrame(() => triggerRemovals());
   }, 1200);
 }
 
