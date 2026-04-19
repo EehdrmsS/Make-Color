@@ -1829,11 +1829,11 @@ function commitSpecialAfterFx(type, commit) {
 function applyBomb(specialReg, targetReg) {
   spawnSpecialTrigger('Bm', specialReg.cells, { targetCells: targetReg.cells });
   commitSpecialAfterFx('Bm', () => {
-    const pts = targetReg.cells.length * 3;
+    const pts = targetReg.color === 'Dk' ? 0 : targetReg.cells.length * 3;
     score += pts;
     document.getElementById('score').textContent = score;
     checkLevelUp();
-    showScorePop(targetReg, pts);
+    if (pts > 0) showScorePop(targetReg, pts);
     addLog(`💣 BOMB! ${COLORS[targetReg.color].name} ×${targetReg.cells.length} destroyed! +${pts}`, 'remove');
     spawnSpecialBurst('Bm', [...specialReg.cells, ...targetReg.cells]);
     resetCells([...specialReg.cells, ...targetReg.cells]);
@@ -1858,11 +1858,13 @@ function applyRecycle(specialReg, targetReg) {
 function applyGoldCoin(specialReg, targetReg) {
   spawnSpecialTrigger('Gc', specialReg.cells);
   commitSpecialAfterFx('Gc', () => {
-    const bonus = (targetReg.cells.length * (targetReg.mixCount + 1) + missionScore * 50) * 3;
+    const bonus = targetReg.color === 'Dk'
+      ? 0
+      : (targetReg.cells.length * (targetReg.mixCount + 1) + missionScore * 50) * 3;
     score += bonus;
     document.getElementById('score').textContent = score;
     checkLevelUp();
-    showScorePop(specialReg, bonus);
+    if (bonus > 0) showScorePop(specialReg, bonus);
     addLog(`💰 COIN! +${bonus} bonus score!`, 'remove');
     spawnSpecialBurst('Gc', [...specialReg.cells, ...targetReg.cells]);
     resetCells([...specialReg.cells, ...targetReg.cells]);
@@ -1881,7 +1883,8 @@ function applyLaser(specialReg, targetReg) {
   });
   const hitCells = [...hitSet].map(k => k.split(',').map(Number));
   commitSpecialAfterFx('Ls', () => {
-    const pts = hitCells.length * 2;
+    const scoredCells = hitCells.filter(([r, c]) => grid[r][c] !== 'Dk');
+    const pts = scoredCells.length * 2;
     score += pts;
     document.getElementById('score').textContent = score;
     checkLevelUp();
@@ -2111,7 +2114,7 @@ const REMOVE_SIZE = 5; // ★ 이 크기(칸 수) 이상이면 터짐 — 숫자
 // ── 레벨 시스템 ─────────────────────────────────────────────────
 // 레벨별 점수 임계값 및 스폰 규칙
 const EXTREME_LEVEL_THRESHOLDS  = [0, 500, 1500, 3000, 5000, 10000];
-const CLASSIC_LEVEL_THRESHOLDS  = [0, 300, 500, 1000, 1500, 2000];
+const CLASSIC_LEVEL_THRESHOLDS  = [0, 200, 350, 700, 1100, 1600];
 const LEVEL_BLACK_RATES = [0,   1,    1,    3,    4,     5]; // 10스폰당 검은 버블 수
 const LEVEL_MIX1_RATES  = [0,   0,    0,    2,    3,     5]; // 10 비검은 스폰당 1차조합색 수
 const MIX1_COLORS = ['G','O','P']; // 레벨 보정으로 강제 스폰되는 1차 조합색
@@ -2177,11 +2180,11 @@ function triggerRemovals() {
   toRemove.forEach(reg => {
     const isMud = reg.color === 'Dk';
     const multiplier = isMud ? 1 : 2;
-    const pts = reg.cells.length * (reg.mixCount + 1) * multiplier;
+    const pts = isMud ? 0 : reg.cells.length * (reg.mixCount + 1) * multiplier;
     totalScore += pts;
     if (!isMud) completedColors.add(reg.color);
     addLog(`${isMud ? 'Cleared' : 'Removed'} ${COLORS[reg.color].name} (×${reg.cells.length}) +${pts}`, 'remove');
-    showScorePop(reg, pts);
+    if (pts > 0) showScorePop(reg, pts);
 
     reg.cells.forEach(([r,c]) => {
       if (burstSet.has(key(r,c))) return;
@@ -3204,6 +3207,49 @@ function getCell(e) {
   return {r,c};
 }
 
+function getCanvasPoint(e) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: (e.clientX - rect.left) * (W / rect.width),
+    y: (e.clientY - rect.top) * (H / rect.height),
+  };
+}
+
+function getForgivingTouchCell(e) {
+  const exactCell = getCell(e);
+  if (!dragStart?.region) return exactCell;
+
+  const regA = dragStart.region;
+  const exactReg = exactCell ? getRegionAt(exactCell.r, exactCell.c) : null;
+  if (exactReg && exactReg !== regA && areRegionsAdjacent(regA, exactReg)) return exactCell;
+
+  const point = getCanvasPoint(e);
+  const [startX, startY] = cellCenter(dragStart.r, dragStart.c);
+  const dragDist = Math.hypot(point.x - startX, point.y - startY);
+  if (dragDist < CELL * 0.28) return exactCell;
+
+  let best = null;
+  let bestDist = Infinity;
+  const seen = new Set();
+  for (const [r, c] of regA.cells) {
+    for (const [dr, dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const nr = r + dr, nc = c + dc;
+      if (nr < 0 || nr >= ROWS || nc < 0 || nc >= COLS) continue;
+      const candidateReg = gridRegion[nr][nc];
+      if (!candidateReg || candidateReg === regA || seen.has(candidateReg.id)) continue;
+      seen.add(candidateReg.id);
+      const [cx, cy] = cellCenter(nr, nc);
+      const dist = Math.hypot(point.x - cx, point.y - cy);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = { r: nr, c: nc };
+      }
+    }
+  }
+
+  return bestDist <= CELL * 1.35 ? best : exactCell;
+}
+
 canvas.addEventListener('mousedown', e => {
   if (!gameStarted || gameEnded) return;
   if (!GameManager.isPlaying()) return;
@@ -3271,7 +3317,7 @@ canvas.addEventListener('touchstart', e => {
 canvas.addEventListener('touchmove', e => {
   e.preventDefault();
   if (!e.touches.length) return;
-  const cell = getCell(getTouchPos(e.touches[0]));
+  const cell = getForgivingTouchCell(getTouchPos(e.touches[0]));
   hoverCell = cell ?? null;
   if (isDragging) renderFrame();
 }, { passive: false });
@@ -3280,7 +3326,7 @@ canvas.addEventListener('touchend', e => {
   e.preventDefault();
   if (!isDragging) return;
   isDragging = false;
-  const cell = e.changedTouches.length ? getCell(getTouchPos(e.changedTouches[0])) : null;
+  const cell = e.changedTouches.length ? getForgivingTouchCell(getTouchPos(e.changedTouches[0])) : null;
   if (cell && dragStart) {
     const regA = dragStart.region;
     const regB = getRegionAt(cell.r, cell.c);
