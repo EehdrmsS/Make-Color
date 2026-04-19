@@ -705,6 +705,104 @@
     display: none;
   }
 
+  body.tablet-game {
+    height: 100dvh;
+    overflow: hidden;
+    justify-content: flex-start;
+    padding: 8px;
+  }
+
+  body.tablet-game .header,
+  body.tablet-game .ad-slot {
+    display: none;
+  }
+
+  body.tablet-game #mission-bar {
+    width: min(100%, 980px);
+    min-height: 48px;
+    margin-bottom: 8px;
+    padding: 8px 12px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  body.tablet-game .wrapper {
+    width: min(100%, 980px);
+    height: calc(100dvh - 72px);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 210px;
+    align-items: start;
+    gap: 10px;
+  }
+
+  body.tablet-game .canvas-col,
+  body.tablet-game #canvas-wrap {
+    width: min(calc(100dvh - 84px), calc(100vw - 248px), 640px);
+    justify-self: end;
+  }
+
+  body.tablet-game #canvas-wrap canvas {
+    width: 100% !important;
+    height: auto !important;
+    touch-action: none;
+  }
+
+  body.tablet-game .sidebar {
+    width: 210px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 0;
+  }
+
+  body.tablet-game .sidebar .card {
+    min-width: 0;
+    padding: 9px 8px;
+  }
+
+  body.tablet-game .card-val {
+    font-size: 1.45rem;
+  }
+
+  body.tablet-game #timer {
+    font-size: 0.76rem;
+    font-weight: 700;
+  }
+
+  body.tablet-game .sidebar .card:nth-of-type(5),
+  body.tablet-game .sidebar .card:nth-of-type(6) {
+    display: none;
+  }
+
+  body.tablet-game .sidebar button {
+    min-height: 42px;
+    padding: 8px;
+  }
+
+  @media (orientation: portrait) and (pointer: coarse) and (min-width: 700px) {
+    body.tablet-game .wrapper {
+      height: calc(100dvh - 72px);
+      grid-template-columns: 1fr;
+      justify-items: center;
+      gap: 8px;
+    }
+
+    body.tablet-game .canvas-col,
+    body.tablet-game #canvas-wrap {
+      width: min(calc(100dvh - 190px), calc(100vw - 16px), 660px);
+      justify-self: center;
+    }
+
+    body.tablet-game .sidebar {
+      width: min(100%, 660px);
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+
+    body.tablet-game .sidebar button {
+      min-height: 38px;
+    }
+  }
+
   @media (max-width: 640px) {
     body { overflow-y: auto; justify-content: flex-start; padding: 12px 8px 24px; }
     .mode-list { grid-template-columns: 1fr; }
@@ -1084,10 +1182,19 @@ function shouldUseMobileMode() {
   return window.matchMedia('(pointer: coarse), (max-width: 720px)').matches;
 }
 
+function shouldUseTabletMode() {
+  return window.matchMedia('(pointer: coarse) and (min-width: 700px)').matches;
+}
+
+function isCompactTouchMode() {
+  return window.matchMedia('(pointer: coarse) and (max-width: 640px)').matches;
+}
+
 function setMobileMode(enabled, manual = false) {
   if (manual) manualMobileMode = enabled;
   const active = manualMobileMode ?? enabled;
   document.body.classList.toggle('mobile-game', active);
+  document.body.classList.toggle('tablet-game', active && shouldUseTabletMode());
   const toggle = document.getElementById('mobile-mode-toggle');
   if (toggle) toggle.textContent = active ? 'Desktop View' : 'Mobile View';
   if (typeof renderFrame === 'function') renderFrame();
@@ -1489,6 +1596,11 @@ let bubbleSpriteCache = new Map();
 let frameBurstMap = null;
 let frameAppearMap = null;
 const MAX_PARTICLES = 360;
+const COMPACT_MAX_PARTICLES = 160;
+
+function maxParticlesForDevice() {
+  return isCompactTouchMode() ? COMPACT_MAX_PARTICLES : MAX_PARTICLES;
+}
 
 function clearGameTimers() {
   gameTimers.forEach(id => clearTimeout(id));
@@ -2106,8 +2218,10 @@ function triggerRemovals() {
     Math.hypot(a.r-cy,a.c-cx) - Math.hypot(b.r-cy,b.c-cx)
   );
 
-  const BURST_DURATION = 360;
-  const STAGGER = 48;
+  const compactFx = isCompactTouchMode();
+  const BURST_DURATION = compactFx ? 260 : 340;
+  const STAGGER = compactFx ? 12 : 24;
+  const MAX_STAGGER_DELAY = compactFx ? 140 : 260;
   const now = performance.now();
 
   // Register burst animations
@@ -2116,30 +2230,33 @@ function triggerRemovals() {
       r: cell.r, c: cell.c,
       color: cell.color,
       isDead: cell.isDead,
-      startT: now + i * STAGGER,
+      startT: now + Math.min(i * STAGGER, MAX_STAGGER_DELAY),
       duration: BURST_DURATION,
     });
   });
 
   // Spawn particles in small batches so large clears do not create one timer per cell.
-  const PARTICLE_BATCH = 4;
-  for (let i = 0; i < allBurstCells.length; i += PARTICLE_BATCH) {
-    const batch = allBurstCells.slice(i, i + PARTICLE_BATCH);
+  const PARTICLE_BATCH = compactFx ? 10 : 6;
+  const particleCells = compactFx && allBurstCells.length > 24
+    ? allBurstCells.filter((_, i) => i % 2 === 0)
+    : allBurstCells;
+  for (let i = 0; i < particleCells.length; i += PARTICLE_BATCH) {
+    const batch = particleCells.slice(i, i + PARTICLE_BATCH);
     scheduleGameTimeout(() => {
       batch.forEach(cell => spawnSplatParticles(cell.r, cell.c, cell.color));
-    }, i * STAGGER + BURST_DURATION * 0.3);
+    }, Math.min(i * STAGGER, MAX_STAGGER_DELAY) + BURST_DURATION * 0.25);
   }
 
   // Ripple at centroid midway
-  const rippleDelay = allBurstCells.length * STAGGER * 0.45;
+  const rippleDelay = Math.min(allBurstCells.length * STAGGER, MAX_STAGGER_DELAY) * 0.45;
   scheduleGameTimeout(() => {
     const [rx, ry] = cellCenter(Math.round(cy), Math.round(cx));
     ripples.push({ x:rx, y:ry, color: toRemove[0].color,
-                   startT: performance.now(), maxR: CELL * 3.5 });
+                   startT: performance.now(), maxR: CELL * (compactFx ? 2.4 : 3.2) });
   }, rippleDelay);
 
   // Commit grid change after animations finish — single guarded timer, no recursion
-  const totalDur = allBurstCells.length * STAGGER + BURST_DURATION + 80;
+  const totalDur = Math.min(allBurstCells.length * STAGGER, MAX_STAGGER_DELAY) + BURST_DURATION + 80;
   scheduleGameTimeout(() => {
     // 제거된 셀: 예약 스페셜 → 레벨별 검은 버블 / 1차조합색 / 기본색 순으로 리스폰
     allBurstCells.forEach(({r,c}) => {
@@ -2158,8 +2275,10 @@ function triggerRemovals() {
 
     // Appear animation for new cells
     const appearNow = performance.now();
+    const APPEAR_STAGGER = compactFx ? 0 : 6;
+    const APPEAR_MAX_DELAY = compactFx ? 0 : 90;
     allBurstCells.forEach(({r,c}, i) => {
-      appearCells.push({ r, c, startT: appearNow + i * 25 });
+      appearCells.push({ r, c, startT: appearNow + Math.min(i * APPEAR_STAGGER, APPEAR_MAX_DELAY) });
     });
 
     isAnimating = false;
@@ -2181,12 +2300,13 @@ function triggerRemovals() {
 function spawnSplatParticles(r, c, colorKey) {
   const [x, y] = cellCenter(r, c);
   const [pr, pg, pb] = toRgb(colorKey);
-  const count = 8 + Math.floor(Math.random()*5);
+  const compactFx = isCompactTouchMode();
+  const count = compactFx ? 4 + Math.floor(Math.random()*3) : 7 + Math.floor(Math.random()*4);
 
   for (let i = 0; i < count; i++) {
     const angle = (Math.PI * 2 * i / count) + (Math.random()-0.5) * 0.8;
-    const speed = 1.8 + Math.random() * 3.2;
-    const size  = 2.5 + Math.random() * 5;
+    const speed = compactFx ? 1.3 + Math.random() * 2.2 : 1.8 + Math.random() * 3.0;
+    const size  = compactFx ? 2 + Math.random() * 3 : 2.5 + Math.random() * 4.5;
     particles.push({
       x, y,
       vx: Math.cos(angle) * speed,
@@ -2199,7 +2319,8 @@ function spawnSplatParticles(r, c, colorKey) {
     });
   }
   // A few elongated drips
-  for (let i = 0; i < 3; i++) {
+  const dripCount = compactFx ? 0 : 2;
+  for (let i = 0; i < dripCount; i++) {
     const angle = Math.PI/2 + (Math.random()-0.5)*1.2;
     const speed = 2 + Math.random()*2;
     particles.push({
@@ -2218,8 +2339,9 @@ function spawnSplatParticles(r, c, colorKey) {
 }
 
 function trimParticles() {
-  if (particles.length > MAX_PARTICLES) {
-    particles.splice(0, particles.length - MAX_PARTICLES);
+  const limit = maxParticlesForDevice();
+  if (particles.length > limit) {
+    particles.splice(0, particles.length - limit);
   }
 }
 
@@ -2407,16 +2529,13 @@ function getBurstState(r, c, now) {
 function getAppearState(r, c, now) {
   const a = frameAppearMap?.get(`${r},${c}`) ?? appearCells.find(a => a.r===r && a.c===c);
   if (!a) return null;
-  const t = Math.min((now - a.startT) / 280, 1);
+  const t = Math.min((now - a.startT) / (isCompactTouchMode() ? 160 : 220), 1);
   if (t >= 1) {
     appearCells.splice(appearCells.indexOf(a), 1);
     return null;
   }
-  // Overshoot spring: scale from 0 → 1.15 → 1
-  const overshoot = t < 0.6
-    ? (t/0.6) * 1.15
-    : 1.15 - 0.15 * ((t-0.6)/0.4);
-  return { scale: overshoot, alpha: Math.min(1, t*3) };
+  const eased = 1 - Math.pow(1 - t, 3);
+  return { scale: eased, alpha: Math.min(1, t*4) };
 }
 
 function renderAll(now) {
