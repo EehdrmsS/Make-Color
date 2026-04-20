@@ -17,24 +17,25 @@ Classic is a timed score mode.
 - No special bubbles
 - 120 second time limit
 - Goal: score as much as possible before time runs out
-- Level thresholds: 300, 500, 1000, 1500, 2000
+- Level thresholds: 200, 350, 700, 1100, 1600
 
 ### Extreme
 
 Extreme is the ongoing survival mode.
 
-- No time limit
+- Timer starts at 30 seconds
+- Mission clears add time, capped by level
 - Special bubbles enabled
 - Goal: survive as long as possible while clearing missions
 - Every 5 mission clears queues one special bubble for future spawn
-- Mud can be cleared when 5 or more Mud cells connect
+- Mud scores 0 points
 
 ## Core Rules
 
 - The board is a 10 x 10 grid.
 - Adjacent cells of the same color form a region.
 - Drag one region onto an adjacent region to merge them.
-- Color results are controlled by the `MIX` table in `make-color.html`.
+- Color results are controlled by the `MIX` table in `src/main.js`.
 - Regions matching active mission colors burst when they reach 5 or more cells.
 - Over-mixed regions become Dead bubbles.
 - Dead bubbles are removed when nearby mission regions burst.
@@ -61,12 +62,24 @@ Recent optimization work includes:
 
 ## Files
 
-- `make-color.html`: Full game implementation, including UI, rules, rendering, input, modes, and effects.
+- `index.html`: Vite HTML entry point.
+- `src/main.js`: Main game loop, rendering, input, modes, and effects.
+- `src/core/`: Game state and timer boundaries.
+- `src/systems/`: Bubble and score system helpers.
+- `src/ui/`: DOM-facing UI helpers.
+- `src/ads/`: AdSense H5 ad integration.
+- `src/utils/`: Shared utility helpers.
+- `make-color.html`: Compatibility redirect to the Vite entry.
 - `README.md`: Project overview and current development notes.
 
 ## Running
 
-Open `make-color.html` directly in a browser.
+Install Node.js 20 or newer, then run:
+
+```bash
+npm install
+npm run dev
+```
 
 ## Production Build
 

@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Make Color!</title>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5739509391465177"
+     crossorigin="anonymous"></script>
+
+</head>
+<body>
+
+<div id="main-menu">
+  <div class="menu-panel">
+    <div class="menu-title">Make <span>Color!</span></div>
+    <div class="menu-copy">Choose a table and start blending.</div>
+    <div class="mode-list">
+      <button class="mode-btn" data-action="start" data-mode="classic">
+        <span class="mode-name">Classic</span>
+        <span class="mode-desc">No special bubbles. Score as much as you can before time runs out.</span>
+      </button>
+      <button class="mode-btn" data-action="start" data-mode="extreme">
+        <span class="mode-name">Extreme</span>
+        <span class="mode-desc">Special bubbles, 30 seconds, missions add time. Stay alive as long as you can.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="game-over" class="hidden">
+  <div class="menu-panel">
+    <div class="menu-title">Time <span>Up!</span></div>
+    <div class="menu-copy">Classic score</div>
+    <div class="game-over-score" id="final-score">0</div>
+    <div class="mode-list">
+      <button class="mode-btn" data-action="start" data-mode="classic">
+        <span class="mode-name">Retry</span>
+        <span class="mode-desc">Start another timed run.</span>
+      </button>
+      <button class="mode-btn" data-action="menu">
+        <span class="mode-name">Menu</span>
+        <span class="mode-desc">Choose a different mode.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="ad-offer" class="hidden">
+  <div class="menu-panel">
+    <div class="menu-title">Last <span>Chance!</span></div>
+    <div class="menu-copy">Watch an ad to continue with 10 seconds and one special bubble.</div>
+    <div class="game-over-score" id="revive-score">0</div>
+    <div class="mode-list">
+      <button class="mode-btn" data-action="watch-revive-ad">
+        <span class="mode-name">Watch Ad</span>
+        <span class="mode-desc">Continue this Extreme run.</span>
+      </button>
+      <button class="mode-btn" data-action="quit-extreme">
+        <span class="mode-name">Quit</span>
+        <span class="mode-desc">End the run and return to the menu.</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div id="result-screen" class="hidden">
+  <div class="menu-panel">
+    <div class="menu-title">Round <span>Clear!</span></div>
+    <div class="menu-copy">Take a breath before the next board beat.</div>
+    <div class="result-stats">
+      <div class="result-stat"><strong id="result-round">0</strong><span>Rounds</span></div>
+      <div class="result-stat"><strong id="result-score">0</strong><span>Score</span></div>
+      <div class="result-stat"><strong id="result-time">0s</strong><span>Time</span></div>
+    </div>
+    <button data-action="continue-round">Continue</button>
+  </div>
+</div>
+
+<div class="header">
+  <h1>Make <span>Color!</span></h1>
+  <div class="tagline">drag to merge · blend the palette</div>
+</div>
+
+<div id="tutorial-overlay" class="hidden">
+  <div id="tutorial-modal">
+    <div class="tutorial-title">플레이 방법</div>
+    <div class="tutorial-section">
+      <div class="tutorial-icon">🎨</div>
+      <div>
+        <strong>드래그해서 합치기</strong>
+        <p>버블 그룹을 인접한 다른 버블 그룹 쪽으로 드래그하면 색이 섞입니다. 예: 빨강 + 노랑 = 주황, 노랑 + 파랑 = 초록</p>
+      </div>
+    </div>
+    <div class="tutorial-section">
+      <div class="tutorial-icon">🎯</div>
+      <div>
+        <strong>미션 클리어</strong>
+        <p>미션 색상의 버블을 5개 이상 연결하면 버블이 터지고 점수를 얻습니다. Extreme 모드에서는 미션을 클리어할 때마다 시간이 추가됩니다.</p>
+      </div>
+    </div>
+    <div class="tutorial-section">
+      <div class="tutorial-icon">💀</div>
+      <div>
+        <strong>죽은 버블</strong>
+        <p>너무 많이 섞인 버블은 검은색 죽은 버블이 되어 필드를 막습니다. 주변에서 미션 버블이 터질 때 함께 제거할 수 있습니다.</p>
+      </div>
+    </div>
+    <button class="tutorial-btn" data-action="close-tutorial">시작하기</button>
+  </div>
+</div>
+
+<div id="mission-bar">
+  <div class="mission-label">Mission</div>
+  <div class="mission-slots" id="mission-slots"></div>
+  <div class="gold-mission-wrap">
+    <div class="gold-label">★ Next Special</div>
+    <div id="gold-mission-slot"></div>
+  </div>
+</div>
+
+<div class="wrapper">
+  <div class="canvas-col">
+    <div id="canvas-wrap">
+      <canvas id="c"></canvas>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="card">
+      <div class="card-label">Score</div>
+      <div class="card-val" id="score">0</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Level</div>
+      <div class="card-val" id="level">1</div>
+      <div id="level-next" class="small-muted"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Merges</div>
+      <div class="card-val" id="merges">0</div>
+    </div>
+
+    <div class="card">
+      <div class="card-label" id="mode-stat-label">Mode</div>
+      <div class="card-val" id="mode-stat">Extreme</div>
+      <div id="timer" class="small-muted">30s</div>
+      <div id="mode-stat-sub" class="small-muted"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Mix Guide</div>
+      <div class="mix-table" id="mix-table"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Log</div>
+      <div id="log"></div>
+    </div>
+
+    <button data-action="restart">↺ New Game</button>
+    <button class="menu-action" data-action="menu">Menu</button>
+    <button class="mobile-mode-action" data-action="mobile-mode" id="mobile-mode-toggle">Mobile View</button>
+  </div>
+</div>
+
+<div class="ad-slot" id="ad-slot" aria-label="Advertisement"></div>
+
+<div id="tooltip"></div>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
