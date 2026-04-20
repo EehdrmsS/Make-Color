@@ -600,11 +600,21 @@
   }
 
   .ad-slot {
+    width: min(100%, 728px);
     min-height: 90px;
     margin-top: 12px;
     color: #a09070;
     font-size: 0.55rem;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .ad-slot::before {
+    content: 'Advertisement';
+    opacity: 0.65;
   }
 
   /* ── Mobile responsive layout ─────────────────────────── */
@@ -688,7 +698,7 @@
 
   body.mobile-game .ad-slot {
     width: min(100%, 560px);
-    min-height: 64px;
+    min-height: 100px;
     margin-top: 8px;
   }
 
@@ -703,9 +713,14 @@
     padding: 8px;
   }
 
-  body.tablet-game .header,
-  body.tablet-game .ad-slot {
+  body.tablet-game .header {
     display: none;
+  }
+
+  body.tablet-game .ad-slot {
+    width: min(100%, 980px);
+    min-height: 64px;
+    margin-top: 6px;
   }
 
   body.tablet-game #mission-bar {

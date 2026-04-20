@@ -111,7 +111,6 @@ const EXTREME_TIMER_CAPS = [
   { maxLevel: 3, seconds: 45 },
   { maxLevel: Infinity, seconds: 30 },
 ];
-const ADSENSE_CLIENT_ID = import.meta.env.VITE_ADSENSE_CLIENT_ID || 'ca-pub-5739509391465177';
 const MISSION_COLORS_LV12 = ['O','G','P']; // 레벨 1~2 전용 — 1차 조합색만
 
 // 2차색 → 기본색 조합 역추적 테이블 (내부 로직용)
@@ -295,16 +294,6 @@ function logSecurityEvent(type, details = {}) {
     const body = JSON.stringify(payload);
     navigator.sendBeacon('/api/log-event', new Blob([body], { type: 'application/json' }));
   }
-}
-
-function loadAdsense() {
-  if (!ADSENSE_CLIENT_ID || ADSENSE_CLIENT_ID.includes('%%')) return;
-  const script = document.createElement('script');
-  script.async = true;
-  script.crossOrigin = 'anonymous';
-  script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(ADSENSE_CLIENT_ID)}`;
-  script.onerror = () => logSecurityEvent('adsense_load_failed');
-  document.head.appendChild(script);
 }
 
 async function createScoreChecksum(payload) {
@@ -2560,7 +2549,6 @@ setupUiActions();
 syncMobileMode();
 window.addEventListener('resize', syncMobileMode);
 window.addEventListener('orientationchange', syncMobileMode);
-loadAdsense();
 AdManager?.initAds();
 buildMixTable();
 renderSpawnQueue();
