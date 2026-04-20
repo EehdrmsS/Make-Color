@@ -395,6 +395,8 @@ let cellMixMap = []; // cellMixMap[r][c] = 해당 셀의 혼합 횟수
 
 let score = 0, mergeCount = 0;
 let dragStart = null;
+let touchStartPoint = null;
+let touchDragActivated = false;
 let hoverCell = null;
 let isDragging = false;
 let isAnimating = false;
@@ -984,7 +986,8 @@ function checkLevelUp() {
     GameManager.updateTimerUi();
     updateModeUi();
     showLevelUpFlash(level);
-    addLog(`Level Up! Lv.${level} — ${LEVEL_BLACK_RATES[level-1]}/10 dead spawns 💀`, 'dead');
+    const { black } = getLevelSpawnRates();
+    addLog(`Level Up! Lv.${level} — ${black[level-1] ?? black.at(-1)}/10 dead spawns 💀`, 'dead');
   }
 }
 
@@ -1021,10 +1024,12 @@ const REMOVE_SIZE = 5; // ★ 이 크기(칸 수) 이상이면 터짐 — 숫자
 
 // ── 레벨 시스템 ─────────────────────────────────────────────────
 // 레벨별 점수 임계값 및 스폰 규칙
-const EXTREME_LEVEL_THRESHOLDS  = [0, 500, 1500, 3000, 5000, 10000];
+const EXTREME_LEVEL_THRESHOLDS  = [0, 200, 350, 700, 1100, 1600, 2500, 4000, 6500, 10000];
 const CLASSIC_LEVEL_THRESHOLDS  = [0, 200, 350, 700, 1100, 1600];
-const LEVEL_BLACK_RATES = [0,   1,    1,    3,    4,     5]; // 10스폰당 검은 버블 수
-const LEVEL_MIX1_RATES  = [0,   0,    0,    2,    3,     5]; // 10 비검은 스폰당 1차조합색 수
+const EXTREME_BLACK_RATES = [0, 1, 1, 2, 3, 3, 4, 4, 5, 6]; // 10스폰당 검은 버블 수
+const EXTREME_MIX1_RATES  = [0, 0, 1, 1, 2, 3, 3, 4, 5, 6]; // 10 비검은 스폰당 1차조합색 수
+const CLASSIC_BLACK_RATES = [0, 1, 1, 3, 4, 5];
+const CLASSIC_MIX1_RATES  = [0, 0, 0, 2, 3, 5];
 const MIX1_COLORS = ['G','O','P']; // 레벨 보정으로 강제 스폰되는 1차 조합색
 let level = 1;
 let spawnCounter = 0;        // 누적 스폰 횟수 (검은 버블 계산용)
@@ -1035,6 +1040,12 @@ let removalQueue = [];
 
 function getLevelThresholds() {
   return currentMode === 'classic' ? CLASSIC_LEVEL_THRESHOLDS : EXTREME_LEVEL_THRESHOLDS;
+}
+
+function getLevelSpawnRates() {
+  return currentMode === 'classic'
+    ? { black: CLASSIC_BLACK_RATES, mix1: CLASSIC_MIX1_RATES }
+    : { black: EXTREME_BLACK_RATES, mix1: EXTREME_MIX1_RATES };
 }
 
 function spawnReplacementColor(source = {}) {
@@ -1048,8 +1059,9 @@ function spawnReplacementColor(source = {}) {
     return { color: pendingSpecialSpawns.shift(), mixCount: 1, isDead: false, isSpecial: true };
   }
 
-  const blackPerTen = LEVEL_BLACK_RATES[level - 1];
-  const mix1PerFive = LEVEL_MIX1_RATES[level - 1];
+  const { black, mix1 } = getLevelSpawnRates();
+  const blackPerTen = black[level - 1] ?? black.at(-1);
+  const mix1PerFive = mix1[level - 1] ?? mix1.at(-1);
   const blackPos = spawnCounter % 10;
   const spawnDead = blackPos < blackPerTen;
 
@@ -2134,16 +2146,24 @@ function getForgivingTouchCell(e) {
   if (!dragStart?.region) return exactCell;
 
   const regA = dragStart.region;
+  const point = getCanvasPoint(e);
+  const intentOrigin = touchStartPoint ?? point;
+  const intentDist = Math.hypot(point.x - intentOrigin.x, point.y - intentOrigin.y);
+  const intentThreshold = CELL * 0.34;
+
+  if (intentDist < intentThreshold) return exactCell;
+  touchDragActivated = true;
+
   const exactReg = exactCell ? getRegionAt(exactCell.r, exactCell.c) : null;
   if (exactReg && exactReg !== regA && areRegionsAdjacent(regA, exactReg)) return exactCell;
 
-  const point = getCanvasPoint(e);
   const [startX, startY] = cellCenter(dragStart.r, dragStart.c);
   const dragDist = Math.hypot(point.x - startX, point.y - startY);
-  if (dragDist < CELL * 0.22) return exactCell;
+  if (dragDist < CELL * 0.28) return exactCell;
 
-  const dx = point.x - startX;
-  const dy = point.y - startY;
+  const dx = point.x - intentOrigin.x;
+  const dy = point.y - intentOrigin.y;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < CELL * 0.26) return exactCell;
   const primaryDir = Math.abs(dx) >= Math.abs(dy)
     ? [0, dx >= 0 ? 1 : -1]
     : [dy >= 0 ? 1 : -1, 0];
@@ -2259,6 +2279,8 @@ canvas.addEventListener('touchstart', e => {
   if (!cell) return;
   isDragging = true;
   dragStart = { ...cell, region: getRegionAt(cell.r, cell.c) };
+  touchStartPoint = getCanvasPoint(getTouchPos(e.touches[0]));
+  touchDragActivated = false;
   hoverCell = cell;
   renderFrame();
 }, { passive: false });
@@ -2276,7 +2298,7 @@ canvas.addEventListener('touchend', e => {
   if (!isDragging) return;
   isDragging = false;
   const cell = e.changedTouches.length ? getForgivingTouchCell(getTouchPos(e.changedTouches[0])) : null;
-  if (cell && dragStart) {
+  if (cell && dragStart && touchDragActivated) {
     const regA = dragStart.region;
     const regB = getRegionAt(cell.r, cell.c);
     if (regA && regB && regA !== regB && areRegionsAdjacent(regA, regB)) {
@@ -2284,6 +2306,8 @@ canvas.addEventListener('touchend', e => {
     }
   }
   dragStart = null;
+  touchStartPoint = null;
+  touchDragActivated = false;
   hoverCell = null;
   renderFrame();
 }, { passive: false });
@@ -2292,6 +2316,8 @@ canvas.addEventListener('touchcancel', e => {
   e.preventDefault();
   isDragging = false;
   dragStart = null;
+  touchStartPoint = null;
+  touchDragActivated = false;
   hoverCell = null;
   renderFrame();
 }, { passive: false });
@@ -2390,7 +2416,9 @@ function addLog(msg, type='merge') {
 //   [재료A, 재료B, 결과] 형식입니다.
 function buildMixTable() {
   const el = document.getElementById('mix-table');
+  const missionEl = document.getElementById('mission-recipe-list');
   el.replaceChildren();
+  missionEl?.replaceChildren();
   const shown = [
     ['R','Y','O'],
     ['R','B','P'],
@@ -2416,6 +2444,12 @@ function buildMixTable() {
     dotRes.style.background = toCss(res);
     row.append(dotA, plus, dotB, arrow, dotRes);
     el.appendChild(row);
+
+    if (missionEl) {
+      const mini = row.cloneNode(true);
+      mini.className = 'mini-recipe';
+      missionEl.appendChild(mini);
+    }
   });
 }
 

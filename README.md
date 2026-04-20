@@ -27,6 +27,7 @@ Extreme is the ongoing survival mode.
 - Mission clears add time, capped by level
 - Special bubbles enabled
 - Goal: survive as long as possible while clearing missions
+- Level thresholds: 200, 350, 700, 1100, 1600, 2500, 4000, 6500, 10000
 - Every 5 mission clears queues one special bubble for future spawn
 - Mud scores 0 points
 

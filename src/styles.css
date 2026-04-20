@@ -437,6 +437,48 @@
     flex-shrink: 0;
   }
 
+  .mission-recipe-guide {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-left: auto;
+    padding-left: 12px;
+    border-left: 1.5px solid #e0d8c8;
+    min-width: 0;
+  }
+
+  .mission-recipe-label {
+    font-size: 0.44rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a09070;
+    white-space: nowrap;
+  }
+
+  .mission-recipe-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .mini-recipe {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0;
+  }
+
+  .mini-recipe .dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .mini-recipe .mix-arrow {
+    font-size: 0.46rem;
+  }
+
   /* Mission complete flash */
   .mission-complete-flash {
     position: fixed;
@@ -645,6 +687,22 @@
     overflow-x: auto;
   }
 
+  body.mobile-game .mission-recipe-guide {
+    display: flex;
+  }
+
+  body.mobile-game .mission-recipe-label {
+    display: none;
+  }
+
+  body.mobile-game .mission-recipe-list {
+    gap: 6px;
+  }
+
+  body.mobile-game .mini-recipe:nth-child(n+3) {
+    display: none;
+  }
+
   body.mobile-game .wrapper {
     width: min(100%, 560px);
     flex-direction: column;
@@ -730,6 +788,10 @@
     padding: 8px 12px;
     flex-shrink: 0;
     overflow: hidden;
+  }
+
+  body.tablet-game .mission-recipe-guide {
+    display: flex;
   }
 
   body.tablet-game .wrapper {
