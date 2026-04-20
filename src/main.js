@@ -116,9 +116,27 @@ const RECIPE = {
   Br: ['O','G'], Lm: ['Y','G'], Cy: ['B','G'],
   Dp: ['B','P'], Mg: ['R','P'],
 };
+const MIX_GUIDE_RECIPES = [
+  ['R','Y','O'],
+  ['R','B','P'],
+  ['Y','B','G'],
+  ['R','G','Br'],
+  ['Y','G','Lm'],
+  ['B','G','Cy'],
+  ['B','P','Dp'],
+  ['R','P','Mg'],
+];
 
 // 스페셜 버블 캔버스 표시 레이블
 const SPECIAL_LABELS = { Bm:'BOMB', Rc:'REC', Gc:'LUCK', Ls:'LZR', Cl:'CLN', Rb:'RBW' };
+const SPECIAL_GUIDE = {
+  Bm: 'Clears every bubble matching the merged target color. Cannot target Dead bubbles.',
+  Rc: 'Refreshes mixed and Dead bubbles by resetting their mix state.',
+  Gc: 'Gives 1000 bonus points.',
+  Ls: 'Clears the row and column crossing the Laser bubble.',
+  Cl: 'Revives Dead bubbles back into playable colors.',
+  Rb: 'Changes every bubble matching the merged target color into a mission color. Cannot target Dead bubbles.',
+};
 const SPECIAL_CLEAR_SCORE_PER_CELL = 10;
 const LUCKY_SCORE_BONUS = 1000;
 
@@ -271,6 +289,8 @@ function setupUiActions() {
     else if (action === 'restart') restartGame();
     else if (action === 'menu') showMainMenu();
     else if (action === 'close-tutorial') closeTutorial();
+    else if (action === 'open-recipe-popover') showRecipePopover();
+    else if (action === 'close-recipe-popover') hideRecipePopover();
     else if (action === 'mobile-mode') toggleMobileMode();
     else if (action === 'continue-round') GameManager.continueAfterResult();
     else if (action === 'watch-revive-ad') GameManager.watchReviveAd();
@@ -2525,39 +2545,151 @@ function buildMixTable() {
   const missionEl = document.getElementById('mission-recipe-list');
   el.replaceChildren();
   missionEl?.replaceChildren();
-  const shown = [
-    ['R','Y','O'],
-    ['R','B','P'],
-    ['Y','B','G'],
-  ];
-  shown.forEach(([a,b,res])=>{
+
+  MIX_GUIDE_RECIPES.forEach(([a,b,res])=>{
     const row = document.createElement('div');
     row.className='mix-row';
-    const dotA = document.createElement('div');
-    dotA.className = 'dot';
-    dotA.style.background = toCss(a);
-    const plus = document.createElement('span');
-    plus.className = 'mix-arrow';
-    plus.textContent = '+';
-    const dotB = document.createElement('div');
-    dotB.className = 'dot';
-    dotB.style.background = toCss(b);
-    const arrow = document.createElement('span');
-    arrow.className = 'mix-arrow';
-    arrow.textContent = '→';
-    const dotRes = document.createElement('div');
-    dotRes.className = 'dot';
-    dotRes.style.background = toCss(res);
-    row.append(dotA, plus, dotB, arrow, dotRes);
+    row.append(
+      createMixSide([a, b]),
+      createMixArrow('->'),
+      createMixSide([res], true),
+    );
     el.appendChild(row);
+  });
 
-    if (missionEl) {
-      const mini = row.cloneNode(true);
-      mini.className = 'mini-recipe';
-      missionEl.appendChild(mini);
-    }
+  if (missionEl) renderCompactRecipePreview(missionEl);
+}
+
+function createDot(color) {
+  const dot = document.createElement('span');
+  dot.className = 'dot';
+  dot.style.background = toCss(color);
+  dot.title = COLORS[color].name;
+  return dot;
+}
+
+function createMixArrow(text) {
+  const arrow = document.createElement('span');
+  arrow.className = 'mix-arrow';
+  arrow.textContent = text;
+  return arrow;
+}
+
+function createMixSide(colors, result = false) {
+  const side = document.createElement('span');
+  side.className = `mix-side${result ? ' result' : ''}`;
+  colors.forEach((color, index) => {
+    if (index > 0) side.appendChild(createMixArrow('+'));
+    side.appendChild(createDot(color));
+    const name = document.createElement('span');
+    name.className = 'mix-name';
+    name.textContent = result ? COLORS[color].name : color;
+    side.appendChild(name);
+  });
+  return side;
+}
+
+function createRecipeResultChip(color) {
+  const chip = document.createElement('span');
+  chip.className = 'recipe-result-chip';
+  chip.append(createDot(color), document.createTextNode(COLORS[color].name));
+  return chip;
+}
+
+function renderCompactRecipePreview(el) {
+  el.replaceChildren();
+  MIX_GUIDE_RECIPES.slice(0, 3).forEach(([a, b, res]) => {
+    const mini = document.createElement('span');
+    mini.className = 'mini-recipe';
+    mini.append(
+      createDot(a),
+      createMixArrow('+'),
+      createDot(b),
+      createMixArrow('->'),
+      createRecipeResultChip(res),
+    );
+    el.appendChild(mini);
   });
 }
+
+function createRecipeRow(a, b, res) {
+  const row = document.createElement('div');
+  row.className = 'recipe-guide-row';
+  row.append(
+    createRecipeResultChip(a),
+    createMixArrow('+'),
+    createRecipeResultChip(b),
+    createMixArrow('->'),
+    createRecipeResultChip(res),
+  );
+  return row;
+}
+
+function renderRecipeGuide(container) {
+  container.replaceChildren();
+  const grid = document.createElement('div');
+  grid.className = 'recipe-guide-grid';
+  MIX_GUIDE_RECIPES.forEach(([a, b, res]) => {
+    grid.appendChild(createRecipeRow(a, b, res));
+  });
+  container.appendChild(grid);
+}
+
+function renderSpecialGuide(container) {
+  container.replaceChildren();
+  if (currentMode !== 'extreme') {
+    container.classList.add('hidden');
+    return;
+  }
+
+  container.classList.remove('hidden');
+  const title = document.createElement('div');
+  title.className = 'special-guide-title';
+  title.textContent = 'Special Bubble';
+  const list = document.createElement('div');
+  list.className = 'special-guide-list';
+
+  SPECIAL_COLORS.forEach(color => {
+    const item = document.createElement('div');
+    item.className = 'special-guide-item';
+    const bubble = createDot(color);
+    bubble.classList.add('special-guide-dot');
+    const text = document.createElement('div');
+    const name = document.createElement('strong');
+    name.textContent = COLORS[color].name;
+    const desc = document.createElement('span');
+    desc.textContent = SPECIAL_GUIDE[color];
+    text.append(name, desc);
+    item.append(bubble, text);
+    list.appendChild(item);
+  });
+
+  container.append(title, list);
+}
+
+function showRecipePopover() {
+  const popover = document.getElementById('recipe-popover');
+  const title = document.getElementById('recipe-popover-title');
+  const formula = document.getElementById('recipe-popover-formula');
+  const specialGuide = document.getElementById('special-popover-guide');
+
+  title.textContent = 'Color Recipe';
+  renderRecipeGuide(formula);
+  renderSpecialGuide(specialGuide);
+  popover.classList.remove('hidden');
+}
+
+function hideRecipePopover() {
+  document.getElementById('recipe-popover')?.classList.add('hidden');
+}
+
+document.getElementById('recipe-popover')?.addEventListener('click', event => {
+  if (event.target.id === 'recipe-popover') hideRecipePopover();
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape') hideRecipePopover();
+});
 
 // ═══════════════════════════════════════════════
 // [INIT] 게임 초기화 — New Game 버튼 & 최초 로드 시 호출

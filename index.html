@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,7 +113,7 @@
   <div class="mission-label">Mission</div>
   <div class="mission-slots" id="mission-slots"></div>
   <div class="mission-recipe-guide" aria-label="Basic color recipes">
-    <div class="mission-recipe-label">Recipe</div>
+    <button class="recipe-open-btn" type="button" data-action="open-recipe-popover">Color Recipe</button>
     <div class="mission-recipe-list" id="mission-recipe-list"></div>
   </div>
   <div class="gold-mission-wrap">
@@ -170,6 +170,22 @@
 </div>
 
 <div class="ad-slot" id="ad-slot" aria-label="Advertisement"></div>
+
+<footer class="site-footer" aria-label="Site navigation">
+  <a href="/about.html">About</a>
+  <a href="/privacy.html">Privacy Policy</a>
+  <a href="/terms.html">Terms</a>
+</footer>
+
+<div id="recipe-popover" class="hidden" role="dialog" aria-modal="true" aria-labelledby="recipe-popover-title">
+  <div class="recipe-popover-panel">
+    <button class="recipe-popover-close" type="button" data-action="close-recipe-popover" aria-label="Close recipe guide">Close</button>
+    <div class="card-label">Guide</div>
+    <div id="recipe-popover-title" class="recipe-popover-title">Color Recipe</div>
+    <div id="recipe-popover-formula" class="recipe-popover-formula"></div>
+    <div id="special-popover-guide" class="special-popover-guide"></div>
+  </div>
+</div>
 
 <div id="tooltip"></div>
 
