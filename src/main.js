@@ -5,6 +5,7 @@ import { GAME_STATES, createGameManager } from './core/GameManager.js';
 import { createTimerState } from './core/Timer.js';
 import { createBubbleSystem } from './systems/BubbleSystem.js';
 import { createScoreSystem } from './systems/ScoreSystem.js';
+import { createFailSafeSystem } from './systems/FailSafeSystem.js';
 import { createUIController } from './ui/UIController.js';
 
 // ═══════════════════════════════════════════════
@@ -122,6 +123,8 @@ const RECIPE = {
 
 // 스페셜 버블 캔버스 표시 레이블
 const SPECIAL_LABELS = { Bm:'BOMB', Rc:'REC', Gc:'LUCK', Ls:'LZR', Cl:'CLN', Rb:'RBW' };
+const SPECIAL_CLEAR_SCORE_PER_CELL = 10;
+const LUCKY_SCORE_BONUS = 1000;
 
 let missions = [];    // 현재 활성 미션 슬롯: [{color, completed}, ...]
 let specialMission = null; // UI에 표시되는 다음 스페셜 버블
@@ -386,6 +389,7 @@ const CELL = 52;   // ★ 칸 크기(px) — 바꾸면 캔버스 전체 크기�
 const PAD  = 10;   // 캔버스 여백(px)
 const W = COLS*CELL + PAD*2;  // 캔버스 가로 픽셀
 const H = ROWS*CELL + PAD*2;  // 캔버스 세로 픽셀
+const FAIL_SAFE_MAX_USES = 3;
 
 let grid = [];       // grid[r][c] = 색 키 문자열 (e.g. 'R', 'O', ...)
 let regions = [];    // 연결된 같은 색 셀들의 묶음 배열 (BFS 로 구성)
@@ -416,6 +420,16 @@ let frameBurstMap = null;
 let frameAppearMap = null;
 const MAX_PARTICLES = 360;
 const COMPACT_MAX_PARTICLES = 160;
+const failSafeSystem = createFailSafeSystem({
+  rows: ROWS,
+  cols: COLS,
+  deadThreshold: DEAD_THRESHOLD,
+  baseColors: BASE_COLORS,
+  mix: MIX,
+  recipe: RECIPE,
+  isSpecialColor: color => Boolean(COLORS[color]?.special),
+  randomFrom,
+});
 
 function maxParticlesForDevice() {
   return isCompactTouchMode() ? COMPACT_MAX_PARTICLES : MAX_PARTICLES;
@@ -681,6 +695,41 @@ function cellKey(r, c) {
   return `${r},${c}`;
 }
 
+function uniqueCells(cells) {
+  const seen = new Set();
+  const result = [];
+  cells.forEach(([r, c]) => {
+    const k = cellKey(r, c);
+    if (seen.has(k)) return;
+    seen.add(k);
+    result.push([r, c]);
+  });
+  return result;
+}
+
+function cellsByColor(color) {
+  const cells = [];
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (grid[r][c] === color) cells.push([r, c]);
+    }
+  }
+  return cells;
+}
+
+function scoreForClearedCells(cells) {
+  return cells.filter(([r, c]) => grid[r][c] !== 'Dk').length * SPECIAL_CLEAR_SCORE_PER_CELL;
+}
+
+function showScorePopAtCells(cells, pts, color) {
+  if (!cells.length || pts <= 0) return;
+  const proxy = {
+    color,
+    cells,
+  };
+  showScorePop(proxy, pts);
+}
+
 function commitSpecialAfterFx(type, commit) {
   startLoop();
   scheduleGameTimeout(() => {
@@ -691,18 +740,20 @@ function commitSpecialAfterFx(type, commit) {
   }, SPECIAL_TRIGGER_DUR[type] ?? 700);
 }
 
-// 💣 BOMB: 대상 region 제거
+// 💣 BOMB: 병합한 대상 색상의 모든 버블 제거
 function applyBomb(specialReg, targetReg) {
-  spawnSpecialTrigger('Bm', specialReg.cells, { targetCells: targetReg.cells });
+  const targetCells = cellsByColor(targetReg.color);
+  const clearCells = uniqueCells([...targetCells, ...specialReg.cells]);
+  spawnSpecialTrigger('Bm', specialReg.cells, { targetCells });
   commitSpecialAfterFx('Bm', () => {
-    const pts = targetReg.color === 'Dk' ? 0 : targetReg.cells.length * 3;
+    const pts = scoreForClearedCells(targetCells);
     score += pts;
     document.getElementById('score').textContent = score;
     checkLevelUp();
-    if (pts > 0) showScorePop(targetReg, pts);
-    addLog(`💣 BOMB! ${COLORS[targetReg.color].name} ×${targetReg.cells.length} destroyed! +${pts}`, 'remove');
-    spawnSpecialBurst('Bm', [...specialReg.cells, ...targetReg.cells]);
-    resetCells([...specialReg.cells, ...targetReg.cells]);
+    showScorePopAtCells(targetCells, pts, targetReg.color);
+    addLog(`💣 BOMB! all ${COLORS[targetReg.color].name} ×${targetCells.length} destroyed! +${pts}`, 'remove');
+    spawnSpecialBurst('Bm', clearCells);
+    resetCells(clearCells);
   });
 }
 
@@ -720,20 +771,17 @@ function applyRecycle(specialReg, targetReg) {
   });
 }
 
-// 💰 COIN: 대상 크기 비례 보너스 점수
+// 💰 LUCKY: 고정 보너스 점수
 function applyGoldCoin(specialReg, targetReg) {
   spawnSpecialTrigger('Gc', specialReg.cells);
   commitSpecialAfterFx('Gc', () => {
-    const bonus = targetReg.color === 'Dk'
-      ? 0
-      : (targetReg.cells.length * (targetReg.mixCount + 1) + missionScore * 50) * 3;
-    score += bonus;
+    score += LUCKY_SCORE_BONUS;
     document.getElementById('score').textContent = score;
     checkLevelUp();
-    if (bonus > 0) showScorePop(specialReg, bonus);
-    addLog(`💰 COIN! +${bonus} bonus score!`, 'remove');
-    spawnSpecialBurst('Gc', [...specialReg.cells, ...targetReg.cells]);
-    resetCells([...specialReg.cells, ...targetReg.cells]);
+    showScorePop(specialReg, LUCKY_SCORE_BONUS);
+    addLog(`💰 LUCKY! +${LUCKY_SCORE_BONUS} bonus score!`, 'remove');
+    spawnSpecialBurst('Gc', specialReg.cells);
+    resetCells(specialReg.cells);
   });
 }
 
@@ -758,8 +806,7 @@ function applyLaser(specialReg, targetReg) {
 
   startLoop();
   scheduleGameTimeout(() => {
-    const scoredCells = hitCells.filter(cell => cell.color !== 'Dk');
-    const pts = scoredCells.length * 2;
+    const pts = hitCells.filter(cell => cell.color !== 'Dk').length * SPECIAL_CLEAR_SCORE_PER_CELL;
     score += pts;
     document.getElementById('score').textContent = score;
     checkLevelUp();
@@ -826,20 +873,21 @@ function applyClean(specialReg, targetReg) {
   });
 }
 
-// 🌈 RAINBOW: 대상 region → 랜덤 미션 색상으로 변환
+// 🌈 RAINBOW: 병합한 대상 색상의 모든 버블 → 랜덤 미션 색상으로 변환
 function applyRainbow(specialReg, targetReg) {
   spawnSpecialTrigger('Rb', specialReg.cells);
   const options = missions.filter(m => !m.completed).map(m => m.color);
   const targetColor = options.length ? randomFrom(options) : randomFrom(MISSION_COLORS);
+  const targetCells = cellsByColor(targetReg.color);
   commitSpecialAfterFx('Rb', () => {
     const newMix = Math.max(1, targetReg.mixCount);
-    targetReg.cells.forEach(([r,c]) => {
+    targetCells.forEach(([r,c]) => {
       grid[r][c] = targetColor;
       cellMixMap[r][c] = newMix;
     });
-    spawnSpecialBurst('Rb', specialReg.cells);
+    spawnSpecialBurst('Rb', [...specialReg.cells, ...targetCells]);
     resetCells(specialReg.cells);
-    addLog(`🌈 RAINBOW! ${targetReg.cells.length}×${COLORS[targetColor].name} appeared!`, 'merge');
+    addLog(`🌈 RAINBOW! all ${COLORS[targetReg.color].name} ×${targetCells.length} became ${COLORS[targetColor].name}!`, 'merge');
   });
 }
 
@@ -1033,7 +1081,7 @@ const REMOVE_SIZE = 5; // ★ 이 크기(칸 수) 이상이면 터짐 — 숫자
 // ── 레벨 시스템 ─────────────────────────────────────────────────
 // 레벨별 점수 임계값 및 스폰 규칙
 const EXTREME_LEVEL_THRESHOLDS  = [0, 200, 350, 700, 1100, 1600, 2500, 4000, 6500, 10000];
-const CLASSIC_LEVEL_THRESHOLDS  = [0, 200, 350, 700, 1100, 1600];
+const CLASSIC_LEVEL_THRESHOLDS  = [0, 120, 250, 500, 900, 1400];
 const EXTREME_BLACK_RATES = [0, 1, 1, 2, 3, 3, 4, 4, 5, 6]; // 10스폰당 검은 버블 수
 const EXTREME_MIX1_RATES  = [0, 0, 1, 1, 2, 3, 3, 4, 5, 6]; // 10 비검은 스폰당 1차조합색 수
 const CLASSIC_BLACK_RATES = [0, 1, 1, 3, 4, 5];
@@ -1088,6 +1136,36 @@ function spawnReplacementColor(source = {}) {
   };
 }
 
+function applyFailSafeSpawn() {
+  if (!gameStarted || gameEnded || isAnimating) return false;
+  const helper = failSafeSystem.maybeCreateHelper({
+    grid,
+    cellMixMap,
+    missions,
+    maxUses: FAIL_SAFE_MAX_USES,
+  });
+  if (!helper) return false;
+
+  grid[helper.r][helper.c] = helper.color;
+  cellMixMap[helper.r][helper.c] = 0;
+  spawnCounter++;
+  spawnHistory.push({
+    color: helper.color,
+    isDead: false,
+    isSpecial: false,
+    seq: spawnCounter,
+  });
+  if (spawnHistory.length > 10) spawnHistory.shift();
+
+  rebuildRegions();
+  renderSpawnQueue();
+  appearCells.push({ r: helper.r, c: helper.c, startT: performance.now() });
+  addLog(`Lucky ${COLORS[helper.color].name} appeared.`, 'merge');
+  startLoop();
+  renderFrame();
+  return true;
+}
+
 function triggerRemovals() {
   if (!gameStarted || gameEnded) return;
   if (!GameManager.isPlaying()) return;
@@ -1099,6 +1177,7 @@ function triggerRemovals() {
   );
 
   if (!toRemove.length) {
+    if (applyFailSafeSpawn()) return;
     renderFrame();
     return;
   }
@@ -2492,6 +2571,7 @@ function initGame(mode = currentMode) {
   document.getElementById('result-screen').classList.add('hidden');
   spawnHistory = [];
   pendingSpecialSpawns = [];
+  failSafeSystem.reset();
   renderSpawnQueue();
   updateModeUi();
 

@@ -17,7 +17,7 @@ Classic is a timed score mode.
 - No special bubbles
 - 120 second time limit
 - Goal: score as much as possible before time runs out
-- Level thresholds: 200, 350, 700, 1100, 1600
+- Level thresholds: 120, 250, 500, 900, 1400
 
 ### Extreme
 
@@ -60,6 +60,7 @@ Recent optimization work includes:
 - Capping particle count
 - Batching clear-effect particle timers
 - Removing render-time randomness from the Laser special effect
+- Adding a mission-guided fail-safe spawn when no meaningful moves remain
 
 ## Files
 
