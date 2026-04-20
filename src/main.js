@@ -1002,13 +1002,21 @@ function showLevelUpFlash(lv) {
 }
 
 function showMissionFlash(color) {
+  const pulse = document.createElement('div');
+  pulse.className = 'mission-color-pulse';
+  pulse.style.background = `radial-gradient(circle, ${toCss(color, 0.46)} 0%, ${toCss(color, 0.24)} 38%, ${toCss(color, 0)} 72%)`;
+  pulse.style.boxShadow = `0 0 46px ${toCss(color, 0.46)}`;
+
   const el = document.createElement('div');
-  el.className = 'mission-complete-flash';
-  el.textContent = `${COLORS[color].name}! 🎨`;
-  el.style.color = toCss(color);
-  el.style.textShadow = `0 0 30px ${toCss(color, 0.7)}, 0 4px 20px rgba(0,0,0,0.3)`;
+  el.className = 'mission-complete-flash time-reward';
+  el.textContent = currentMode === 'extreme' ? `+${EXTREME_MISSION_TIME_BONUS}s` : 'CLEAR';
+  el.style.color = '#fffaf0';
+  el.style.textShadow = `0 0 22px ${toCss(color, 0.85)}, 0 4px 20px rgba(0,0,0,0.32)`;
+
+  document.body.appendChild(pulse);
   document.body.appendChild(el);
-  scheduleGameTimeout(() => el.remove(), 1200);
+  scheduleGameTimeout(() => pulse.remove(), 900);
+  scheduleGameTimeout(() => el.remove(), 900);
 }
 
 function isMissionColor(color) {
