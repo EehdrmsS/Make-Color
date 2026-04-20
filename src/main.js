@@ -107,11 +107,7 @@ const CLASSIC_TIME_LIMIT = 120;
 const EXTREME_TIME_LIMIT = 30;
 const EXTREME_MISSION_TIME_BONUS = 10;
 const EXTREME_REVIVE_TIME = 10;
-const EXTREME_TIMER_CAPS = [
-  { maxLevel: 2, seconds: 60 },
-  { maxLevel: 3, seconds: 45 },
-  { maxLevel: Infinity, seconds: 30 },
-];
+const EXTREME_TIMER_CAP = 60;
 const MISSION_COLORS_LV12 = ['O','G','P']; // 레벨 1~2 전용 — 1차 조합색만
 
 // 2차색 → 기본색 조합 역추적 테이블 (내부 로직용)
@@ -153,7 +149,8 @@ function formatTime(sec) {
 }
 
 function getExtremeTimerCap(lv = level) {
-  return EXTREME_TIMER_CAPS.find(rule => lv <= rule.maxLevel).seconds;
+  void lv;
+  return EXTREME_TIMER_CAP;
 }
 
 function clampExtremeTimer() {
@@ -663,12 +660,23 @@ function doMerge(regA, regB) {
   triggerRemovals();
 }
 
+function canSpecialTarget(specialReg, targetReg) {
+  if (!specialReg || !targetReg) return false;
+  const blocksDeadTarget = specialReg.color === 'Bm' || specialReg.color === 'Rb';
+  return !(blocksDeadTarget && targetReg.isDead);
+}
+
 // ═══════════════════════════════════════════════
 // [SPECIAL BUBBLES] 스페셜 버블 효과 처리
 // ═══════════════════════════════════════════════
 function triggerSpecial(specialReg, targetReg) {
   if (currentMode === 'classic') return;
   if (isAnimating) return;
+  if (!canSpecialTarget(specialReg, targetReg)) {
+    addLog(`${COLORS[specialReg.color].name} cannot merge with Dead bubbles.`, 'dead');
+    renderFrame();
+    return;
+  }
   mergeCount++;
   document.getElementById('merges').textContent = mergeCount;
 
@@ -802,6 +810,7 @@ function applyLaser(specialReg, targetReg) {
       c,
       color: grid[r][c],
       isDead: cellMixMap[r][c] >= DEAD_THRESHOLD,
+      suppressSpecial: Boolean(COLORS[grid[r][c]]?.special),
     }));
 
   startLoop();
@@ -832,6 +841,7 @@ function applyLaser(specialReg, targetReg) {
           c: cell.c,
           color: cell.color,
           isDead: cell.isDead,
+          suppressSpecial: cell.suppressSpecial,
           startT: now + Math.min(i * STAGGER, MAX_STAGGER_DELAY),
           duration: BURST_DURATION,
         });
@@ -1588,7 +1598,15 @@ function renderAll(now) {
   for (const reg of sorted) {
     const isSelected = reg === dragRegion;
     const canMerge   = reg === hoverRegion && hoverRegion !== dragRegion
-                        && dragRegion && areRegionsAdjacent(dragRegion, reg);
+                        && dragRegion && areRegionsAdjacent(dragRegion, reg)
+                        && (
+                          !COLORS[dragRegion.color]?.special
+                          || canSpecialTarget(dragRegion, reg)
+                        )
+                        && (
+                          !COLORS[reg.color]?.special
+                          || canSpecialTarget(reg, dragRegion)
+                        );
     drawRegion(reg, isSelected, canMerge, now);
   }
   if (dragRegion) drawRegion(dragRegion, true, false, now);
@@ -2134,12 +2152,13 @@ function drawRegion(reg, isSelected, isTarget, now) {
       ctx.shadowBlur = 24 * pulse;
     }
 
-    const sprite = getBubbleSprite(reg.color, DEAD, SPECIAL);
+    const drawSpecial = SPECIAL && !st.burst?.suppressSpecial;
+    const sprite = getBubbleSprite(reg.color, DEAD, drawSpecial);
     const drawSize = sprite.width * scale;
     ctx.drawImage(sprite, x - drawSize/2, y - drawSize/2, drawSize, drawSize);
 
     // 스페셜 버블 타입별 이펙트 + 라벨
-    if (SPECIAL) {
+    if (drawSpecial) {
       drawSpecialFX(reg.color, now, x, y, blobR);
       ctx.save();
       ctx.globalAlpha = alpha;
