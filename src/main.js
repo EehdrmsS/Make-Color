@@ -208,14 +208,26 @@ function toggleMobileMode() {
   setMobileMode(!active, true);
 }
 
+function syncTopNavState() {
+  const menuVisible = !document.getElementById('main-menu')?.classList.contains('hidden');
+  const siteLinks = document.querySelector('.top-nav-site-links');
+  const gameLinks = document.querySelector('.top-nav-game-links');
+  document.body.classList.toggle('menu-screen', menuVisible);
+  document.body.classList.toggle('game-screen', !menuVisible);
+  if (siteLinks) siteLinks.hidden = !menuVisible;
+  if (gameLinks) gameLinks.hidden = menuVisible;
+}
+
 let GameManager;
 
 function updateModeUi() {
   const isClassic = currentMode === 'classic';
-  document.getElementById('mode-stat-label').textContent = isClassic ? 'Time' : 'Timer';
+  document.getElementById('mode-stat-label').textContent = 'Time';
   document.getElementById('mode-stat').textContent = formatTime(timeLeft);
   document.getElementById('mode-stat-sub').textContent = isClassic ? 'Classic' : 'Extreme';
   GameManager.updateTimerUi();
+  document.getElementById('timer').textContent = isClassic ? 'Timed run' : 'Survival run';
+  document.getElementById('mode-stat').classList.toggle('timer-low', timeLeft <= 5);
   document.querySelector('.gold-mission-wrap').style.display = isClassic ? 'none' : 'flex';
   const spawnQueueWrap = document.getElementById('spawn-queue-wrap');
   if (spawnQueueWrap) spawnQueueWrap.style.display = isClassic ? 'none' : 'block';
@@ -243,6 +255,10 @@ function endClassicGame() {
   document.querySelector('#game-over [data-action="start"]').dataset.mode = 'classic';
   document.querySelector('#game-over [data-action="start"] .mode-desc').textContent = 'Start another timed run.';
   document.getElementById('game-over').classList.remove('hidden');
+  syncTopNavState();
+  if (AdManager.registerCompletedPlay('classic')) {
+    AdManager.showInterstitial(() => renderFrame());
+  }
   submitScore('classic');
   hideTooltip();
   stopLoop();
@@ -258,6 +274,7 @@ function startGame(mode) {
   document.getElementById('game-over').classList.add('hidden');
   document.getElementById('ad-offer').classList.add('hidden');
   document.getElementById('result-screen').classList.add('hidden');
+  syncTopNavState();
   initGame(mode);
 }
 
@@ -279,6 +296,7 @@ function showMainMenu() {
   document.getElementById('result-screen').classList.add('hidden');
   document.getElementById('game-over').classList.add('hidden');
   document.getElementById('main-menu').classList.remove('hidden');
+  syncTopNavState();
 }
 
 function setupUiActions() {
@@ -496,6 +514,7 @@ GameManager = createGameManager({
   getExtremeTimerCap,
   updateModeUi,
   endClassicGame,
+  syncTopNavState,
   scheduleGameTimeout,
   getTimerTimeoutId: () => timerTimeoutId,
   setTimerTimeoutId: value => { timerTimeoutId = value; },
@@ -2826,4 +2845,5 @@ window.addEventListener('orientationchange', syncMobileMode);
 AdManager?.initAds();
 buildMixTable();
 renderSpawnQueue();
+syncTopNavState();
 updateModeUi();

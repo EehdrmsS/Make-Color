@@ -12,13 +12,13 @@
     justify-content: flex-start;
     overflow-x: hidden;
     overflow-y: auto;
-    padding: 72px 16px 36px;
+    padding: 88px 16px 36px;
     cursor: default;
   }
 
   .top-nav {
     position: fixed;
-    top: 10px;
+    top: 8px;
     left: 50%;
     transform: translateX(-50%);
     z-index: 460;
@@ -26,8 +26,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    padding: 10px 12px;
+    gap: 10px;
+    padding: 8px 12px;
     border-radius: 8px;
     background: rgba(250,247,240,0.92);
     border: 1px solid rgba(224,216,200,0.9);
@@ -46,12 +46,23 @@
   .top-nav-links {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     flex-wrap: wrap;
     justify-content: center;
   }
 
-  .top-nav-links a {
+  .top-nav-site-links,
+  .top-nav-game-links {
+    flex: 1 1 auto;
+  }
+
+  body.menu-screen .top-nav-site-links { display: flex; }
+  body.menu-screen .top-nav-game-links { display: none; }
+  body.game-screen .top-nav-site-links { display: none; }
+  body.game-screen .top-nav-game-links { display: flex; }
+
+  .top-nav-links a,
+  .top-nav-action {
     color: #6f624e;
     text-decoration: none;
     font-size: 0.58rem;
@@ -61,6 +72,62 @@
   .top-nav-links a[aria-current="page"] {
     color: #1a1208;
     text-decoration: underline;
+  }
+
+  .top-nav-action {
+    width: auto;
+    min-height: 30px;
+    padding: 7px 10px;
+    border: 1px solid #ded3bf;
+    border-radius: 8px;
+    background: #faf7f0;
+    color: #4a4031;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .top-nav-action:hover {
+    background: #fffaf0;
+    text-decoration: none;
+  }
+
+  .top-nav-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    margin-right: 5px;
+    font-size: 0.68rem;
+  }
+
+  .top-nav-action-new {
+    background: #4f8f58;
+    color: #f5f0e8;
+    border-color: #4f8f58;
+  }
+
+  .top-nav-action-new:hover {
+    background: #5b9d64;
+  }
+
+  .top-nav-action-menu {
+    background: #b97734;
+    color: #f5f0e8;
+    border-color: #b97734;
+  }
+
+  .top-nav-action-menu:hover {
+    background: #c68542;
+  }
+
+  .top-nav-action-alt {
+    background: #305f7a;
+    color: #f5f0e8;
+    border-color: #305f7a;
+  }
+
+  .top-nav-action-alt:hover {
+    background: #376d8c;
   }
 
   /* Paper texture bg */
@@ -131,6 +198,26 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
+  }
+
+  .menu-install-guide {
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(222, 211, 191, 0.9);
+    text-align: left;
+  }
+
+  .menu-install-guide strong {
+    display: block;
+    color: #1a1208;
+    font-size: 0.68rem;
+    margin-bottom: 6px;
+  }
+
+  .menu-install-guide p {
+    font-size: 0.6rem;
+    line-height: 1.65;
+    color: #7a6a50;
   }
 
   .mode-btn {
@@ -209,10 +296,17 @@
   }
 
   .main-page-intro,
-  .site-content {
+  .site-content,
+  .site-top-info,
+  .site-controls-row {
     position: relative;
     z-index: 1;
     width: min(980px, 100%);
+  }
+
+  .site-top-info {
+    display: flex;
+    flex-direction: column;
   }
 
   .main-page-intro {
@@ -231,6 +325,17 @@
     font-size: 0.7rem;
     line-height: 1.8;
     color: #5f5444;
+  }
+
+  .main-page-intro h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 1rem;
+    color: #1a1208;
+    margin: 14px 0 6px;
+  }
+
+  .main-page-intro strong {
+    color: #1a1208;
   }
 
   h1 {
@@ -289,22 +394,54 @@
     background: #faf7f0;
     border: 1.5px solid #e0d8c8;
     border-radius: 10px;
-    padding: 12px 14px;
+    padding: 10px 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }
 
+  .metric-card {
+    min-height: 82px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .metric-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .metric-main {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  .metric-main-split {
+    align-items: baseline;
+  }
+
+  .metric-note {
+    margin-top: 0;
+    text-align: right;
+    line-height: 1.35;
+  }
+
   .card-label {
-    font-size: 0.55rem;
-    letter-spacing: 0.16em;
+    font-size: 0.5rem;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #a09070;
-    margin-bottom: 4px;
+    margin-bottom: 0;
   }
 
   .card-val {
     font-family: 'Fraunces', serif;
     font-weight: 700;
-    font-size: 2rem;
+    font-size: 2.15rem;
     color: #1a1208;
     line-height: 1;
   }
@@ -453,6 +590,13 @@
     min-height: 52px;
   }
 
+  .site-controls-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
   .mission-label {
     font-size: 0.55rem;
     letter-spacing: 0.14em;
@@ -466,6 +610,7 @@
     display: flex;
     gap: 14px;
     align-items: center;
+    min-width: 0;
   }
 
   .mission-slot {
@@ -533,16 +678,6 @@
     flex-shrink: 0;
   }
 
-  .mission-recipe-guide {
-    display: none;
-    align-items: center;
-    gap: 8px;
-    margin-left: auto;
-    padding-left: 12px;
-    border-left: 1.5px solid #e0d8c8;
-    min-width: 0;
-  }
-
   .mission-recipe-label {
     font-size: 0.44rem;
     letter-spacing: 0.12em;
@@ -559,6 +694,25 @@
     font-size: 0.52rem;
     letter-spacing: 0.04em;
     white-space: nowrap;
+  }
+
+  .mission-toggle-btn {
+    min-height: 32px;
+    width: auto;
+    flex-shrink: 0;
+    padding: 7px 11px;
+    border-radius: 8px;
+    border: 1px solid #e8ddca;
+    background: rgba(255,255,255,0.42);
+    color: #5f5444;
+    font-size: 0.52rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  .mission-toggle-btn:hover {
+    background: #fffaf0;
   }
 
   .mission-recipe-list {
@@ -794,9 +948,10 @@
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    margin-left: 10px;
+    margin-left: auto;
     padding-left: 14px;
     border-left: 1.5px solid #e0d8c8;
+    flex-shrink: 0;
   }
 
   .gold-label {
@@ -893,19 +1048,21 @@
 
   #mode-stat {
     font-size: 1.35rem;
-    word-break: break-word;
+    white-space: nowrap;
+    word-break: normal;
   }
 
   .small-muted {
-    font-size: 0.5rem;
+    font-size: 0.48rem;
     color: #a09070;
     margin-top: 2px;
   }
 
   #timer {
-    font-size: 0.65rem;
+    font-size: 0.78rem;
     color: #7a6a50;
-    margin-top: 4px;
+    margin-top: 0;
+    font-weight: 700;
   }
 
   #timer.timer-low {
@@ -913,17 +1070,16 @@
     font-weight: 700;
   }
 
-  .menu-action { background: #4a4031; font-size: 0.58rem; }
-
-  .mobile-mode-action {
-    background: #305f7a;
-    font-size: 0.58rem;
+  #mode-stat.timer-low {
+    color: #c05030;
   }
 
   .ad-slot {
     width: min(100%, 728px);
     min-height: 90px;
-    margin-top: 12px;
+    margin-top: 28px;
+    margin-bottom: 22px;
+    padding: 12px 0;
     color: #a09070;
     font-size: 0.55rem;
     text-align: center;
@@ -936,6 +1092,40 @@
   .site-content {
     margin-top: 24px;
     margin-bottom: 22px;
+  }
+
+  .site-content-controls {
+    position: relative;
+    z-index: 1;
+    width: min(980px, 100%);
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    margin-bottom: 8px;
+  }
+
+  .content-toggle-btn {
+    min-height: 38px;
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1.5px solid #d8ceb9;
+    background: rgba(250,247,240,0.92);
+    color: #5f5444;
+    font-size: 0.58rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .content-toggle-btn:hover {
+    background: #fffaf0;
+  }
+
+  .site-content.is-collapsed {
+    display: none;
+  }
+
+  .site-top-info.is-collapsed {
+    display: none;
   }
 
   .info-sections {
@@ -1092,7 +1282,7 @@
   body.mobile-game {
     overflow-y: auto;
     justify-content: flex-start;
-    padding: 72px 8px 22px;
+    padding: 94px 8px 22px;
   }
 
   body.mobile-game .header {
@@ -1113,37 +1303,38 @@
     margin-bottom: 8px;
     padding: 8px 10px;
     gap: 8px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     overflow: visible;
   }
 
-  body.mobile-game .mission-recipe-guide {
+  body.mobile-game .site-controls-row {
+    width: min(100%, 560px);
     display: flex;
-    flex: 1 1 100%;
-    margin-left: 0;
-    padding: 7px 0 0;
-    border-left: 0;
-    border-top: 1.5px solid #e0d8c8;
-    overflow-x: auto;
-  }
-
-  body.mobile-game .mission-recipe-label {
-    display: none;
-  }
-
-  body.mobile-game .recipe-open-btn {
-    min-height: 30px;
-    padding: 7px 10px;
-  }
-
-  body.mobile-game .mission-recipe-list {
+    align-items: center;
     gap: 6px;
+    margin-bottom: 8px;
     flex-wrap: wrap;
-    overflow: visible;
   }
 
-  body.mobile-game .mini-recipe {
-    display: none;
+  body.mobile-game .site-controls-row .recipe-open-btn,
+  body.mobile-game .site-controls-row .mission-toggle-btn {
+    flex: 0 0 auto;
+  }
+
+  body.mobile-game .mission-label {
+    align-self: flex-start;
+  }
+
+  body.mobile-game .mission-slots {
+    gap: 10px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    flex: 1 1 auto;
+  }
+
+  body.mobile-game .gold-mission-wrap {
+    margin-left: 0;
+    padding-left: 10px;
   }
 
   body.mobile-game .recipe-guide-grid,
@@ -1207,12 +1398,38 @@
   }
 
   body.mobile-game .card-label {
-    font-size: 0.46rem;
+    font-size: 0.44rem;
     letter-spacing: 0.08em;
   }
 
   body.mobile-game .card-val {
-    font-size: 1.35rem;
+    font-size: 1.55rem;
+  }
+
+  body.mobile-game #mode-stat {
+    font-size: 1.3rem;
+    white-space: nowrap;
+  }
+
+  body.mobile-game .metric-card {
+    min-height: 68px;
+    gap: 5px;
+  }
+
+  body.mobile-game .metric-card-time .metric-main {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  body.mobile-game .metric-note,
+  body.mobile-game .small-muted {
+    font-size: 0.42rem;
+  }
+
+  body.mobile-game #timer {
+    font-size: 0.6rem;
+    white-space: nowrap;
   }
 
   body.mobile-game .sidebar .card:nth-of-type(5),
@@ -1229,7 +1446,8 @@
   body.mobile-game .ad-slot {
     width: min(100%, 560px);
     min-height: 100px;
-    margin-top: 8px;
+    margin-top: 24px;
+    margin-bottom: 18px;
   }
 
   body.mobile-game .site-footer {
@@ -1244,7 +1462,7 @@
     height: 100dvh;
     overflow: hidden;
     justify-content: flex-start;
-    padding: 72px 8px 8px;
+    padding: 92px 8px 8px;
   }
 
   body.tablet-game .header {
@@ -1254,7 +1472,8 @@
   body.tablet-game .ad-slot {
     width: min(100%, 980px);
     min-height: 64px;
-    margin-top: 6px;
+    margin-top: 22px;
+    margin-bottom: 16px;
   }
 
   body.tablet-game #mission-bar {
@@ -1267,18 +1486,12 @@
     overflow-y: hidden;
   }
 
-  body.tablet-game .mission-recipe-guide {
+  body.tablet-game .site-controls-row {
+    width: min(100%, 980px);
     display: flex;
-    max-width: min(42vw, 360px);
-  }
-
-  body.tablet-game .mission-recipe-list {
-    flex-wrap: wrap;
-    overflow: visible;
-  }
-
-  body.tablet-game .mini-recipe {
-    display: none;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
   }
 
   body.tablet-game .recipe-open-btn {
@@ -1318,15 +1531,19 @@
 
   body.tablet-game .sidebar .card {
     min-width: 0;
-    padding: 9px 8px;
+    padding: 8px 9px;
   }
 
   body.tablet-game .card-val {
-    font-size: 1.45rem;
+    font-size: 1.65rem;
+  }
+
+  body.tablet-game .metric-card {
+    min-height: 72px;
   }
 
   body.tablet-game #timer {
-    font-size: 0.76rem;
+    font-size: 0.68rem;
     font-weight: 700;
   }
 
@@ -1365,11 +1582,21 @@
   }
 
   @media (max-width: 640px) {
-    body { overflow-y: auto; justify-content: flex-start; padding: 72px 8px 24px; }
+    body { overflow-y: auto; justify-content: flex-start; padding: 94px 8px 24px; }
     .mode-list { grid-template-columns: 1fr; }
     .menu-title { font-size: 2.4rem; }
-    .top-nav { align-items: flex-start; flex-direction: column; }
-    .top-nav-links { gap: 10px; }
+    .top-nav {
+      align-items: center;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      row-gap: 8px;
+    }
+    .top-nav-brand { flex: 1 1 auto; }
+    .top-nav-links {
+      width: 100%;
+      justify-content: flex-start;
+      gap: 8px;
+    }
     .wrapper { flex-direction: column; align-items: center; gap: 12px; }
     .sidebar {
       width: 100%;
@@ -1378,12 +1605,13 @@
       gap: 8px;
       padding: 0;
     }
-    .sidebar .card { flex: 1; min-width: 80px; padding: 10px 10px; }
+    .sidebar .card { flex: 1; min-width: 80px; padding: 9px 10px; }
     .sidebar .card:last-of-type { flex-basis: 100%; } /* Log full width */
     .sidebar button { width: auto; flex: 1; }
     #canvas-wrap { max-width: calc(100vw - 16px); width: 100%; }
     #canvas-wrap canvas { width: 100% !important; height: auto !important; touch-action: none; }
-    #mission-bar { flex-wrap: wrap; gap: 8px; padding: 8px 12px; }
+    .site-controls-row { width: 100%; }
+    #mission-bar { gap: 8px; padding: 8px 12px; }
     .content-page { padding: 14px 10px; }
     .content-shell { padding: 18px 14px; }
     .content-nav { align-items: flex-start; flex-direction: column; }

@@ -8,7 +8,6 @@ export function createGameState(initialState = GAME_STATES.GAME_OVER) {
   return {
     state: initialState,
     extremeRounds: 0,
-    pendingRoundBreak: false,
     reviveUsed: false,
   };
 }
@@ -29,12 +28,6 @@ export function createGameManager(deps) {
     set extremeRounds(rounds) {
       state.extremeRounds = rounds;
     },
-    get pendingRoundBreak() {
-      return state.pendingRoundBreak;
-    },
-    set pendingRoundBreak(pending) {
-      state.pendingRoundBreak = pending;
-    },
     get reviveUsed() {
       return state.reviveUsed;
     },
@@ -45,7 +38,6 @@ export function createGameManager(deps) {
     reset(mode) {
       this.state = GAME_STATES.PLAYING;
       this.extremeRounds = 0;
-      this.pendingRoundBreak = false;
       this.reviveUsed = false;
       this.stopTimer();
       deps.setTimeLeft(mode === 'classic' ? deps.CLASSIC_TIME_LIMIT : deps.EXTREME_TIME_LIMIT);
@@ -100,13 +92,6 @@ export function createGameManager(deps) {
       this.extremeRounds += 1;
       this.updateTimerUi();
       deps.updateModeUi();
-      this.pendingRoundBreak = false;
-    },
-
-    consumeRoundBreakRequest() {
-      if (!this.pendingRoundBreak || deps.getCurrentMode() !== 'extreme') return false;
-      this.pendingRoundBreak = false;
-      return true;
     },
 
     showRoundResult() {
@@ -122,14 +107,10 @@ export function createGameManager(deps) {
 
     continueAfterResult() {
       deps.ui.hideResultScreen();
-      const resume = () => {
-        this.state = GAME_STATES.PLAYING;
-        this.startTimer();
-        requestAnimationFrame(() => deps.triggerRemovals());
-        deps.renderFrame();
-      };
-      if (deps.ads?.showInterstitial) deps.ads.showInterstitial(resume);
-      else resume();
+      this.state = GAME_STATES.PLAYING;
+      this.startTimer();
+      requestAnimationFrame(() => deps.triggerRemovals());
+      deps.renderFrame();
     },
 
     showReviveOffer() {
@@ -177,6 +158,10 @@ export function createGameManager(deps) {
       deps.setDragStart(null);
       deps.setHoverCell(null);
       deps.ui.showExtremeGameOver(deps.getScore());
+      deps.syncTopNavState?.();
+      if (deps.ads?.registerCompletedPlay?.('extreme')) {
+        deps.ads.showInterstitial(() => deps.renderFrame());
+      }
       deps.submitScore('extreme');
       deps.hideTooltip();
       deps.stopLoop();

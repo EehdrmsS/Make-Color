@@ -1,7 +1,7 @@
-const INTERSTITIAL_EVERY = 3;
+const INTERSTITIAL_THRESHOLD = 3;
 
 let initialized = false;
-let completedRounds = 0;
+let completedPlayUnits = 0;
 let adInProgress = false;
 
 function safeCall(fn) {
@@ -19,9 +19,12 @@ function initAds() {
   }
 }
 
-function trackAdFrequency() {
-  completedRounds += 1;
-  return completedRounds % INTERSTITIAL_EVERY === 0;
+function registerCompletedPlay(mode) {
+  const playUnits = mode === 'extreme' ? 3 : 1;
+  completedPlayUnits += playUnits;
+  if (completedPlayUnits < INTERSTITIAL_THRESHOLD) return false;
+  completedPlayUnits -= INTERSTITIAL_THRESHOLD;
+  return true;
 }
 
 function runBreak(options, callback) {
@@ -103,5 +106,5 @@ export const AdManager = {
   initAds,
   showInterstitial,
   showRewarded,
-  trackAdFrequency,
+  registerCompletedPlay,
 };

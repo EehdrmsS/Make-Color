@@ -15,9 +15,10 @@ export function createUIController(doc = document) {
     },
     updateTimer(timeLeft) {
       const timer = byId('timer');
+      const modeStat = byId('mode-stat');
+      if (modeStat) modeStat.classList.toggle('timer-low', timeLeft <= 5);
       if (!timer) return;
-      timer.textContent = `${timeLeft}s`;
-      timer.classList.toggle('timer-low', timeLeft <= 5);
+      timer.classList.remove('timer-low');
     },
     showRoundResult({ round, score, timeLeft }) {
       this.setText('result-round', round);
