@@ -2,6 +2,31 @@ import './styles.css';
 
 const LANGUAGE_KEY = 'make-color-content-language';
 const SITE_INFO_COLLAPSED_KEY = 'make-color-site-info-collapsed';
+const TOP_NAV_COLLAPSED_KEY = 'make-color-top-nav-collapsed';
+
+function initTopNavToggle() {
+  const nav = document.querySelector('.top-nav');
+  const toggleButton = document.querySelector('[data-top-nav-toggle]');
+  if (!nav || !toggleButton) return;
+
+  function applyState(collapsed) {
+    nav.classList.toggle('is-collapsed', collapsed);
+    toggleButton.setAttribute('aria-expanded', String(!collapsed));
+    toggleButton.textContent = collapsed ? 'v' : '^';
+    toggleButton.setAttribute(
+      'aria-label',
+      collapsed ? 'Expand top navigation' : 'Collapse top navigation',
+    );
+    localStorage.setItem(TOP_NAV_COLLAPSED_KEY, collapsed ? '1' : '0');
+  }
+
+  const saved = localStorage.getItem(TOP_NAV_COLLAPSED_KEY) === '1';
+  applyState(saved);
+
+  toggleButton.addEventListener('click', () => {
+    applyState(!nav.classList.contains('is-collapsed'));
+  });
+}
 
 function initSiteInfoToggle() {
   const toggleButton = document.querySelector('[data-toggle-site-info]');
@@ -69,3 +94,4 @@ export function initSiteLanguage(sectionSelector = '[data-lang]') {
 
 initSiteLanguage('[data-site-lang]');
 initSiteInfoToggle();
+initTopNavToggle();

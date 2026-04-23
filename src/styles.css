@@ -34,6 +34,13 @@
     backdrop-filter: blur(6px);
   }
 
+  .top-nav-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+  }
+
   .top-nav-brand {
     color: #1a1208;
     text-decoration: none;
@@ -128,6 +135,33 @@
 
   .top-nav-action-alt:hover {
     background: #376d8c;
+  }
+
+  .top-nav-collapse {
+    width: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    padding: 0;
+    border: 1px solid #ded3bf;
+    border-radius: 8px;
+    background: #faf7f0;
+    color: #4a4031;
+    font-size: 0.78rem;
+    line-height: 1;
+  }
+
+  .top-nav-collapse:hover {
+    background: #fffaf0;
+  }
+
+  .top-nav.is-collapsed {
+    padding-top: 7px;
+    padding-bottom: 7px;
+  }
+
+  .top-nav.is-collapsed .top-nav-links,
+  .top-nav.is-collapsed .language-toggle {
+    display: none !important;
   }
 
   /* Paper texture bg */
