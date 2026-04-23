@@ -2,23 +2,24 @@ import './styles.css';
 
 const LANGUAGE_KEY = 'make-color-content-language';
 
-function applyLanguage(lang) {
-  const normalized = lang === 'kr' ? 'kr' : 'en';
-  document.documentElement.lang = normalized === 'kr' ? 'ko' : 'en';
-  document.querySelectorAll('[data-lang]').forEach(section => {
-    section.hidden = section.dataset.lang !== normalized;
-  });
-  document.querySelectorAll('[data-language-toggle]').forEach(button => {
-    button.textContent = normalized === 'kr' ? 'KR / EN' : 'EN / KR';
-    button.setAttribute(
-      'aria-label',
-      normalized === 'kr' ? 'Switch language to English' : 'Switch language to Korean',
-    );
-  });
-  localStorage.setItem(LANGUAGE_KEY, normalized);
-}
+export function initSiteLanguage(sectionSelector = '[data-lang]') {
+  function applyLanguage(lang) {
+    const normalized = lang === 'kr' ? 'kr' : 'en';
+    document.documentElement.lang = normalized === 'kr' ? 'ko' : 'en';
+    document.querySelectorAll(sectionSelector).forEach(section => {
+      const sectionLang = section.dataset.siteLang ?? section.dataset.lang;
+      section.hidden = sectionLang !== normalized;
+    });
+    document.querySelectorAll('[data-language-toggle]').forEach(button => {
+      button.textContent = normalized === 'kr' ? 'KR / EN' : 'EN / KR';
+      button.setAttribute(
+        'aria-label',
+        normalized === 'kr' ? 'Switch language to English' : 'Switch language to Korean',
+      );
+    });
+    localStorage.setItem(LANGUAGE_KEY, normalized);
+  }
 
-function initLanguageToggle() {
   const saved = localStorage.getItem(LANGUAGE_KEY) || 'en';
   applyLanguage(saved);
 
@@ -30,4 +31,4 @@ function initLanguageToggle() {
   });
 }
 
-initLanguageToggle();
+initSiteLanguage('[data-site-lang]');

@@ -10,6 +10,17 @@
 </head>
 <body>
 
+<nav class="top-nav" aria-label="Primary navigation">
+  <a class="top-nav-brand" href="/">Make Color!</a>
+  <div class="top-nav-links">
+    <a href="/" aria-current="page">Home</a>
+    <a href="/about.html">About</a>
+    <a href="/privacy.html">Privacy Policy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+  <button class="language-toggle" data-language-toggle type="button">EN / KR</button>
+</nav>
+
 <div id="main-menu">
   <div class="menu-panel">
     <div class="menu-title">Make <span>Color!</span></div>
@@ -80,6 +91,28 @@
   <h1>Make <span>Color!</span></h1>
   <div class="tagline">drag to merge · blend the palette</div>
 </div>
+
+<section class="main-page-intro">
+  <div data-site-lang="en">
+    <p class="content-kicker">Puzzle Game</p>
+    <h2>Blend colors, shape the board, and chase better runs.</h2>
+    <p>
+      Make Color! is a browser puzzle game built around color mixing, spatial planning,
+      and survival decisions. You are not matching identical tiles. You are merging
+      connected bubble groups, creating new colors on purpose, and deciding when to
+      push for missions versus when to protect the board from dead space.
+    </p>
+  </div>
+  <div data-site-lang="kr" hidden>
+    <p class="content-kicker">퍼즐 게임</p>
+    <h2>색을 섞고, 보드를 운영하고, 더 긴 플레이를 노리세요.</h2>
+    <p>
+      Make Color!는 색 조합, 공간 운영, 생존 판단을 중심으로 만든 브라우저 퍼즐 게임입니다.
+      같은 타일을 맞추는 방식이 아니라 연결된 버블 그룹을 병합해서 새로운 색을 만들고,
+      미션 달성과 보드 안정성 사이에서 선택을 계속 이어가야 합니다.
+    </p>
+  </div>
+</section>
 
 <div id="tutorial-overlay" class="hidden">
   <div id="tutorial-modal">
@@ -171,7 +204,126 @@
 
 <div class="ad-slot" id="ad-slot" aria-label="Advertisement"></div>
 
+<main class="site-content">
+  <section class="info-sections" aria-label="Site information">
+    <div data-site-lang="en">
+      <article class="info-block">
+        <p class="content-kicker">About the Game</p>
+        <h2>What makes this puzzle different</h2>
+        <p>
+          Make Color! is a board-management puzzle game about controlled color mixing.
+          Every move changes both the palette and the shape of the board. Drag one
+          connected bubble group into an adjacent group and the two groups merge into a
+          new result color. That sounds simple, but each merge creates a tradeoff. Larger
+          regions are easier to clear and score with, yet they also occupy more space,
+          block future routes, and make mistakes more expensive. The result is a puzzle
+          loop that rewards patience, pattern reading, and forward planning.
+        </p>
+        <p>
+          The game is not based on endless random matching. Runs improve when you learn
+          the recipe system, route around dead areas, and decide which part of the board
+          should stay flexible. A strong board is one where several mission colors remain
+          possible at the same time. A weak board is one where one oversized region or a
+          cluster of dead bubbles forces every move into the same lane. That tension is
+          what gives the game its identity.
+        </p>
+      </article>
+
+      <article class="info-block">
+        <p class="content-kicker">How to Play</p>
+        <h2>Rules, goals, and practical flow</h2>
+        <h3>1. Merge adjacent bubble groups</h3>
+        <p>
+          Select a connected region and drag it into a neighboring region. If the two
+          colors combine, both regions become one larger group in the new color.
+        </p>
+        <h3>2. Follow the mission targets</h3>
+        <p>
+          The mission panel shows which colors you should build. When a mission color
+          forms a large enough connected region, that region clears and awards points.
+          In Extreme mode, mission clears also give back time.
+        </p>
+        <h3>3. Avoid dead bubbles</h3>
+        <p>
+          Repeatedly mixing the same area creates dead bubbles that reduce mobility and
+          make recovery harder. You need to rotate pressure across the board instead of
+          forcing one region forever.
+        </p>
+      </article>
+
+      <article class="info-block">
+        <p class="content-kicker">Features</p>
+        <h2>Modes, progression, and special mechanics</h2>
+        <p>
+          Classic mode is a timed score run with no special bubbles. It is the cleanest
+          version of the system and focuses on efficient merges. Extreme mode adds mission
+          pressure, special bubbles, timer recovery through clears, and more board-state
+          swings. Difficulty increases through spawn pressure and board complexity rather
+          than through hidden rules. The site also includes direct navigation, legal pages,
+          recipe guidance, and touch-friendly layouts so the game remains usable on desktop,
+          mobile, and tablet devices.
+        </p>
+      </article>
+    </div>
+
+    <div data-site-lang="kr" hidden>
+      <article class="info-block">
+        <p class="content-kicker">게임 소개</p>
+        <h2>이 퍼즐이 다른 이유</h2>
+        <p>
+          Make Color!는 색 조합과 보드 운영을 함께 다루는 퍼즐 게임입니다. 한 번의 병합은
+          색상만 바꾸는 것이 아니라 판의 형태 자체를 바꿉니다. 연결된 버블 그룹을 인접한 다른
+          그룹으로 드래그하면 새로운 색으로 합쳐지는데, 여기서부터 선택의 무게가 생깁니다. 큰
+          영역은 지우기 쉽고 점수 효율도 좋지만 공간을 더 많이 차지하고 이후 동선을 막을 수
+          있으며, 실수했을 때 손해도 커집니다. 그래서 이 게임은 빠른 반응보다 차분한 판단과
+          보드 읽기, 다음 수를 생각하는 운영이 중요합니다.
+        </p>
+        <p>
+          무작정 같은 색을 맞추는 구조가 아니라, 조합표를 이해하고 Dead bubble을 피하면서
+          여러 미션 가능성을 동시에 열어두는 플레이가 좋은 기록으로 이어집니다. 강한 보드는
+          다양한 색이 살아 있고 다음 병합 경로가 여러 개 남아 있는 보드입니다. 반대로 약한
+          보드는 한 구역이 과도하게 커지거나 Dead bubble이 몰려서 선택지가 한쪽으로만 몰린
+          상태입니다. 이런 긴장감이 Make Color!의 핵심 재미입니다.
+        </p>
+      </article>
+
+      <article class="info-block">
+        <p class="content-kicker">플레이 방법</p>
+        <h2>규칙과 목표를 빠르게 이해하기</h2>
+        <h3>1. 인접한 버블 그룹을 병합합니다</h3>
+        <p>
+          연결된 하나의 영역을 선택한 뒤 옆에 붙은 다른 영역으로 드래그합니다. 두 색이 조합되면
+          하나의 더 큰 영역으로 합쳐집니다.
+        </p>
+        <h3>2. 미션 색을 만듭니다</h3>
+        <p>
+          미션 패널에 표시된 색을 목표로 보드를 운영합니다. 미션 색이 충분히 큰 연결 영역이 되면
+          제거되면서 점수를 얻고, Extreme 모드에서는 시간도 회복합니다.
+        </p>
+        <h3>3. Dead bubble을 관리합니다</h3>
+        <p>
+          같은 구역을 과하게 섞으면 Dead bubble이 생겨 이동 경로와 선택지가 줄어듭니다. 오래
+          버티려면 판 전체를 고르게 운영하는 것이 중요합니다.
+        </p>
+      </article>
+
+      <article class="info-block">
+        <p class="content-kicker">주요 기능</p>
+        <h2>모드, 난이도, 스페셜 메커닉</h2>
+        <p>
+          Classic 모드는 스페셜 버블 없이 제한 시간 안에 점수를 높이는 모드입니다. Extreme 모드는
+          미션 압박, 시간 회복, 스페셜 버블, 더 복잡한 보드 운영이 함께 들어가는 생존형 모드입니다.
+          난이도는 숨겨진 규칙보다는 스폰 압박과 보드 복잡도 상승으로 조절됩니다. 사이트 구조 역시
+          단순한 게임 화면에 그치지 않도록 내비게이션, 조합 가이드, 법적 페이지, 모바일 친화 레이아웃을
+          함께 제공해 사용자와 크롤러 모두가 내용을 읽을 수 있게 구성했습니다.
+        </p>
+      </article>
+    </div>
+  </section>
+</main>
+
 <footer class="site-footer" aria-label="Site navigation">
+  <a href="/">Home</a>
   <a href="/about.html">About</a>
   <a href="/privacy.html">Privacy Policy</a>
   <a href="/terms.html">Terms</a>

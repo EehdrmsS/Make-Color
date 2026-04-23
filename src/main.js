@@ -1,4 +1,5 @@
 import './styles.css';
+import './contentPages.js';
 import { AdManager } from './ads/adManager.js';
 import { randomFrom as helperRandomFrom, formatTime as helperFormatTime } from './utils/helpers.js';
 import { GAME_STATES, createGameManager } from './core/GameManager.js';
